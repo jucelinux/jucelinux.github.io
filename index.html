@@ -1,7 +1,120 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal Drácula</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #282a36;
+            font-family: 'Courier New', Courier, monospace;
+            color: #f8f8f2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .terminal {
+            background-color: #1e1f29;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 800px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .terminal .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #44475a;
+            padding: 10px;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .terminal .header .buttons {
+            display: flex;
+        }
+
+        .terminal .header .buttons div {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .terminal .header .buttons .close {
+            background-color: #ff5555;
+        }
+
+        .terminal .header .buttons .minimize {
+            background-color: #f1fa8c;
+        }
+
+        .terminal .header .buttons .maximize {
+            background-color: #50fa7b;
+        }
+
+        .terminal .header .title {
+            color: #f8f8f2;
+            font-size: 14px;
+        }
+
+        .terminal .body {
+            padding: 10px;
+            line-height: 1.5;
+        }
+
+        .terminal .body .command {
+            color: #8be9fd;
+        }
+
+        .terminal .body .output {
+            color: #f8f8f2;
+        }
+
+        .terminal .body .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 16px;
+            background-color: #f8f8f2;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                background-color: transparent;
+            }
+        }
+    </style>
+</head>
 <body>
-<h1>Jucelinux</h1>
-<p>Vai kraii</p>
+    <div class="terminal">
+        <div class="header">
+            <div class="buttons">
+                <div class="close"></div>
+                <div class="minimize"></div>
+                <div class="maximize"></div>
+            </div>
+            <div class="title">Terminal - jucelinux</div>
+        </div>
+        <div class="body">
+            <div>
+                <span class="command">jucelinux@dracula:~$</span>
+                <span class="output"> ls -la</span>
+            </div>
+            <div>
+                <span class="command">jucelinux@dracula:~$</span>
+                <span class="output"> echo "Hello, World!"</span>
+            </div>
+            <div>
+                <span class="command">jucelinux@dracula:~$</span>
+                <span class="cursor"></span>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
