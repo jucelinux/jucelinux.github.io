@@ -1,120 +1,2114 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JUCELINUX</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 20px;
-            background-color: #282a36;
-            font-family: 'Courier New', Courier, monospace;
-            color: #f8f8f2;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>JUCELINUX — 16-bit Career Edition</title>
+<meta name="description" content="O currículo jogável de Jucelino Barros: Staff Engineer e AI Lead. Explore a jornada Walmart → Mercado Livre → iFood → Conta Simples em um mundo 16-bit." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --night: #0b0c12; --panel: #1a1c2c; --indigo: #29366f;
+    --blue: #41a6f6; --cyan: #73eff7; --green: #38b764;
+    --amber: #ffcd75; --orange: #ef7d57; --white: #f4f4f4; --steel: #94b0c2;
+    --px: 'Press Start 2P', monospace; --vt: 'VT323', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: var(--night); overflow: hidden; touch-action: none; }
+  body { font-family: var(--vt); color: var(--white); }
+  .hidden { display: none !important; }
 
-        .terminal {
-            background-color: #1e1f29;
-            border-radius: 10px;
-            width: 80%;
-            max-width: 800px;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-        }
+  #game { position: fixed; inset: 0; }
+  #game canvas { image-rendering: pixelated; }
 
-        .terminal .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #44475a;
-            padding: 10px;
-            border-radius: 10px 10px 0 0;
-        }
+  #crt { pointer-events: none; position: fixed; inset: 0; z-index: 90;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0 1px, transparent 1px 3px); }
 
-        .terminal .header .buttons {
-            display: flex;
-        }
+  .overlay { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center; padding: 24px;
+    background: radial-gradient(ellipse at 50% 30%, #141a33 0%, var(--night) 70%); }
+  #boot-title { font-family: var(--px); font-size: clamp(26px, 8vw, 52px); color: var(--blue);
+    text-shadow: 4px 4px 0 var(--indigo); letter-spacing: 2px; }
+  #boot-sub { font-family: var(--px); font-size: clamp(8px, 2.4vw, 12px); color: var(--amber); margin-top: 16px; }
+  #boot-hint { font-size: 20px; color: var(--steel); margin-top: 22px; max-width: 480px; }
+  #boot-langs { display: flex; gap: 12px; margin-top: 28px; }
+  #boot-langs button { font-family: var(--px); font-size: 10px; padding: 10px 16px; cursor: pointer;
+    background: var(--panel); color: var(--steel); border: 3px solid var(--indigo); }
+  #boot-langs button.on { color: var(--green); border-color: var(--green); }
+  #boot-start { font-family: var(--px); font-size: clamp(11px, 3vw, 15px); margin-top: 34px;
+    padding: 16px 28px; cursor: pointer; color: var(--night); background: var(--green);
+    border: 0; box-shadow: 0 6px 0 #1d6e3c; animation: blink 1.3s steps(1) infinite; }
+  #boot-start:active { transform: translateY(4px); box-shadow: 0 2px 0 #1d6e3c; }
+  @keyframes blink { 50% { opacity: 0.55; } }
+  #boot-credit { position: absolute; bottom: 18px; font-family: var(--px); font-size: 8px; color: #4b5378; }
 
-        .terminal .header .buttons div {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
+  #prologue { background: #0f1020; }
+  .pro-frame { max-width: 560px; width: 100%; border: 4px solid #7b9dd6; background: #171a36;
+    box-shadow: 8px 8px 0 #000; padding: 26px 22px; text-align: left; }
+  #pro-title { font-family: var(--px); font-size: clamp(10px, 3vw, 14px); color: #7b9dd6; margin-bottom: 18px; }
+  #pro-body { font-size: 21px; line-height: 1.35; color: #cdd7f2; white-space: pre-line;
+    max-height: 52vh; overflow-y: auto; }
+  #pro-btn { font-family: var(--px); font-size: 10px; margin-top: 22px; padding: 12px 18px;
+    cursor: pointer; background: #7b9dd6; color: #0f1020; border: 0; box-shadow: 0 5px 0 #3b4f80; }
+  #pro-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #3b4f80; }
 
-        .terminal .header .buttons .close {
-            background-color: #ff5555;
-        }
+  #hud { position: fixed; top: 0; left: 0; right: 0; z-index: 80; display: flex;
+    align-items: center; gap: 10px; padding: 8px 10px;
+    background: linear-gradient(180deg, rgba(11,12,18,0.92), rgba(11,12,18,0.6) 80%, transparent); }
+  #hud-loc { font-family: var(--px); font-size: 8px; color: var(--amber); white-space: nowrap; }
+  #hud-xp-wrap { display: flex; align-items: center; gap: 6px; margin-left: 6px; }
+  #hud-xp-label { font-family: var(--px); font-size: 7px; color: var(--steel); }
+  #hud-xp { display: flex; gap: 2px; }
+  .xp-seg { width: 10px; height: 10px; background: var(--panel); border: 2px solid var(--indigo); }
+  .xp-seg.full { background: var(--green); border-color: var(--green); }
+  #hud .spacer { flex: 1; }
+  .hud-btn { font-family: var(--px); font-size: 8px; padding: 8px 10px; cursor: pointer;
+    background: var(--panel); color: var(--cyan); border: 2px solid var(--indigo);
+    text-decoration: none; display: inline-block; }
+  .hud-btn:active { background: var(--indigo); }
+  #btn-cv { color: var(--night); background: var(--amber); border-color: var(--amber); }
 
-        .terminal .header .buttons .minimize {
-            background-color: #f1fa8c;
-        }
+  #prompt { position: fixed; bottom: 108px; left: 50%; transform: translateX(-50%); z-index: 80;
+    font-size: 21px; color: var(--white); background: rgba(16,18,28,0.92);
+    border: 2px solid var(--green); padding: 6px 14px; white-space: nowrap; }
+  #prompt .key { font-family: var(--px); font-size: 8px; color: var(--green); margin-right: 6px; }
 
-        .terminal .header .buttons .maximize {
-            background-color: #50fa7b;
-        }
+  #dialog { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 85;
+    width: min(680px, calc(100vw - 16px)); background: #101423; border: 4px solid var(--white);
+    box-shadow: 8px 8px 0 #000, inset 0 0 0 2px var(--indigo); padding: 12px; cursor: pointer; }
+  .d-row { display: flex; gap: 12px; align-items: flex-start; }
+  .d-port { flex: none; width: 96px; }
+  #portrait { width: 96px; height: 96px; image-rendering: pixelated; background: #0c101f;
+    border: 3px solid var(--blue); display: block; }
+  #d-name { font-family: var(--px); font-size: 7px; color: var(--blue); text-align: center;
+    margin-top: 5px; letter-spacing: 1px; }
+  .d-main { flex: 1; min-width: 0; }
+  #d-title { font-family: var(--px); font-size: clamp(8px, 2.6vw, 11px); color: var(--amber); }
+  #d-period { font-size: 18px; color: var(--cyan); margin-top: 4px; }
+  #d-body { font-size: 21px; line-height: 1.3; color: var(--white); margin-top: 8px;
+    white-space: pre-line; max-height: 26vh; overflow-y: auto; }
+  #d-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .chip { font-size: 16px; color: var(--green); border: 2px solid #2f5340; padding: 2px 8px; }
+  #d-links { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+  #d-links a { font-size: 19px; color: var(--cyan); text-decoration: none; }
+  #d-links a:hover, #d-links a:focus { color: var(--amber); }
+  #d-next { position: absolute; right: 10px; bottom: 8px; font-family: var(--px); font-size: 10px;
+    color: var(--green); background: none; border: 0; cursor: pointer;
+    animation: bob 0.8s ease-in-out infinite alternate; }
+  @keyframes bob { from { transform: translateY(0); } to { transform: translateY(4px); } }
 
-        .terminal .header .title {
-            color: #f8f8f2;
-            font-size: 14px;
-        }
+  #dpad { position: fixed; left: 14px; bottom: 16px; z-index: 86; width: 132px; height: 132px; }
+  #dpad button { position: absolute; width: 44px; height: 44px; font-size: 18px;
+    background: rgba(26,28,44,0.85); color: var(--steel); border: 2px solid var(--indigo);
+    -webkit-user-select: none; user-select: none; }
+  #dp-up { left: 44px; top: 0; } #dp-down { left: 44px; bottom: 0; }
+  #dp-left { left: 0; top: 44px; } #dp-right { right: 0; top: 44px; }
+  #btn-a { position: fixed; right: 18px; bottom: 34px; z-index: 86; width: 62px; height: 62px;
+    border-radius: 50%; font-family: var(--px); font-size: 14px;
+    background: rgba(56,183,100,0.9); color: var(--night); border: 3px solid #1d6e3c;
+    -webkit-user-select: none; user-select: none; }
 
-        .terminal .body {
-            padding: 10px;
-            line-height: 1.5;
-        }
+  #controls-hint { position: fixed; top: 52px; left: 50%; transform: translateX(-50%); z-index: 80;
+    font-size: 19px; color: var(--steel); background: rgba(16,18,28,0.9);
+    border: 2px solid var(--indigo); padding: 5px 12px; transition: opacity 1s; white-space: nowrap;
+    max-width: calc(100vw - 20px); overflow: hidden; text-overflow: ellipsis; }
+  #controls-hint.fade { opacity: 0; }
 
-        .terminal .body .command {
-            color: #8be9fd;
-        }
+  #toast { position: fixed; top: 60px; left: 50%; transform: translate(-50%, -16px); z-index: 95;
+    width: min(520px, calc(100vw - 24px)); background: #101423; border: 4px solid var(--amber);
+    box-shadow: 8px 8px 0 #000; padding: 14px 16px; opacity: 0; transition: all 0.4s; }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+  #toast strong { font-family: var(--px); font-size: 10px; color: var(--amber); display: block; }
+  #toast span { font-size: 19px; color: var(--white); display: block; margin-top: 8px; line-height: 1.3; }
 
-        .terminal .body .output {
-            color: #f8f8f2;
-        }
+  @media (max-width: 640px) {
+    #hud-xp-label { display: none; }
+    #prompt { bottom: 150px; }
+    #dialog { bottom: 8px; }
+    .d-port { width: 64px; }
+    #portrait { width: 64px; height: 64px; }
+    #d-body { font-size: 19px; max-height: 22vh; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #boot-start, #d-next { animation: none; }
+  }
 
-        .terminal .body .cursor {
-            display: inline-block;
-            width: 8px;
-            height: 16px;
-            background-color: #f8f8f2;
-            animation: blink 1s step-end infinite;
-        }
+/* ===== resume screen (embutido) ===== */
+#resume-screen{position:fixed;inset:0;z-index:120;overflow-y:auto;background:#fdfdfa;-webkit-overflow-scrolling:touch;}
+:root{
+    --ink: #1c2030; --muted: #5a6178; --line: #e3e5ee;
+    --indigo: #29366f; --blue: #2f7fd4; --green: #2e9455; --amber: #ffcd75;
+    --px: 'Press Start 2P', monospace; --vt: 'VT323', monospace;
+  }#resume-screen *{ box-sizing: border-box; margin: 0; padding: 0; }#resume-screen body{ background: #fdfdfa; color: var(--ink);
+    font: 16px/1.6 -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }#resume-screen .wrap{ max-width: 820px; margin: 0 auto; padding: 28px 20px 80px; }#resume-screen .topbar{ display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 28px; }#resume-screen .btn{ font-family: var(--px); font-size: 8px; padding: 9px 12px; cursor: pointer;
+    border: 2px solid var(--indigo); background: #fff; color: var(--indigo);
+    text-decoration: none; display: inline-block; }#resume-screen .btn.primary{ background: var(--indigo); color: #fff; }#resume-screen .btn.on{ background: var(--green); border-color: var(--green); color: #fff; }#resume-screen .spacer{ flex: 1; }#resume-screen header.hero{ border-bottom: 4px solid var(--indigo); padding-bottom: 20px; margin-bottom: 26px; position: relative; }#resume-screen header.hero::after{ content: ""; position: absolute; left: 0; bottom: -8px; width: 96px; height: 4px; background: var(--amber); }#resume-screen .handle{ font-family: var(--vt); font-size: 19px; color: var(--green); }#resume-screen h1{ font-size: clamp(28px, 5vw, 40px); line-height: 1.15; letter-spacing: -0.5px; margin-top: 2px; }#resume-screen .role{ font-size: 17px; color: var(--indigo); font-weight: 600; margin-top: 6px; }#resume-screen .meta{ margin-top: 10px; color: var(--muted); font-size: 14px; }#resume-screen .meta a{ color: var(--blue); text-decoration: none; }#resume-screen .meta a:hover{ text-decoration: underline; }#resume-screen h2{ font-family: var(--px); font-size: 11px; color: var(--indigo); letter-spacing: 1px;
+    margin: 34px 0 14px; display: flex; align-items: center; gap: 10px; }#resume-screen h2::after{ content: ""; flex: 1; height: 2px; background: var(--line); }#resume-screen .summary p{ margin-bottom: 10px; }#resume-screen .job{ margin-bottom: 22px; }#resume-screen .job-head{ display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }#resume-screen .job-head h3{ font-size: 18px; }#resume-screen .job-head .period{ font-family: var(--vt); font-size: 18px; color: var(--muted); margin-left: auto; white-space: nowrap; }#resume-screen .job .role-line{ color: var(--indigo); font-weight: 600; font-size: 14.5px; margin-top: 1px; }#resume-screen .job p{ margin-top: 6px; color: #2c3145; }#resume-screen .job ul{ margin: 6px 0 0 18px; }#resume-screen .job li{ margin-bottom: 3px; }#resume-screen .phase{ border-left: 3px solid var(--line); padding: 2px 0 2px 14px; margin: 12px 0 0 2px; }#resume-screen .phase .p-title{ font-weight: 700; font-size: 15px; }#resume-screen .phase .p-title .period{ font-family: var(--vt); font-size: 17px; color: var(--muted); font-weight: 400; margin-left: 8px; }#resume-screen .phase.tl{ border-color: var(--blue); }#resume-screen .phase.st{ border-color: var(--amber); }#resume-screen .phase.ai{ border-color: var(--green); }#resume-screen .skills{ display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }#resume-screen .skill-group h4{ font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; }#resume-screen .tags{ display: flex; flex-wrap: wrap; gap: 6px; }#resume-screen .tag{ font-family: var(--vt); font-size: 17px; color: var(--indigo); background: #eef0f8;
+    border: 1px solid var(--line); padding: 1px 8px; }#resume-screen .edu, #resume-screen .early{ color: #2c3145; }#resume-screen footer{ margin-top: 44px; padding-top: 14px; border-top: 2px solid var(--line);
+    font-family: var(--vt); font-size: 17px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; }@media print{
+    .topbar, .no-print { display: none !important; }#resume-screen body{ background: #fff; font-size: 12.5px; }#resume-screen .wrap{ max-width: 100%; padding: 0; }#resume-screen h2{ margin-top: 20px; }#resume-screen a{ color: var(--ink); }
+  }
 
-        @keyframes blink {
-            50% {
-                background-color: transparent;
-            }
-        }
-    </style>
+</style>
 </head>
 <body>
-    <div class="terminal">
-        <div class="header">
-            <div class="buttons">
-                <div class="close"></div>
-                <div class="minimize"></div>
-                <div class="maximize"></div>
-            </div>
-            <div class="title">Terminal - jucelinux</div>
-        </div>
-        <div class="body">
-            <div>
-                <span class="command">jucelinux:~$</span>
-                <span class="output"> history | grep work</span>
-            </div>
-            <div>
-                <span class="command">jucelinux:~$</span>
-                <span class="output"> echo "Hello, World!"</span>
-            </div>
-            <div>
-                <span class="command">jucelinux:~$</span>
-                <span class="cursor"></span>
-            </div>
-        </div>
+  <div id="game"></div>
+  <div id="crt" aria-hidden="true"></div>
+
+  <!-- BOOT -->
+  <div id="boot" class="overlay">
+    <h1 id="boot-title">JUCELINUX</h1>
+    <div id="boot-sub">16-BIT CAREER EDITION</div>
+    <p id="boot-hint"></p>
+    <div id="boot-langs" role="group" aria-label="Language">
+      <button data-lang="pt" type="button">PORTUGUÊS</button>
+      <button data-lang="en" type="button">ENGLISH</button>
     </div>
+    <button id="boot-start" type="button">PRESS START</button>
+    <div id="boot-credit"></div>
+  </div>
+
+  <!-- PRÓLOGO 8-BIT -->
+  <div id="prologue" class="overlay hidden">
+    <div class="pro-frame">
+      <h2 id="pro-title"></h2>
+      <p id="pro-body"></p>
+      <button id="pro-btn" type="button"></button>
+    </div>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <span id="hud-loc"></span>
+    <div id="hud-xp-wrap">
+      <span id="hud-xp-label"></span>
+      <div id="hud-xp"></div>
+    </div>
+    <span class="spacer"></span>
+    <button id="btn-lang" class="hud-btn" type="button">PT</button>
+    <button id="btn-music" class="hud-btn" type="button">♪ ON</button>
+    <a id="btn-cv" class="hud-btn" href="#resume" data-nav="resume"></a>
+  </div>
+
+  <div id="controls-hint" class="hidden"></div>
+  <div id="prompt" class="hidden"></div>
+
+  <!-- JANELA DE COMUNICAÇÃO -->
+  <div id="dialog" class="hidden" role="dialog" aria-live="polite">
+    <div class="d-row">
+      <div class="d-port">
+        <canvas id="portrait" width="128" height="128"></canvas>
+        <div id="d-name">JUCELINUX</div>
+      </div>
+      <div class="d-main">
+        <div id="d-title"></div>
+        <div id="d-period"></div>
+        <div id="d-body"></div>
+        <div id="d-chips"></div>
+        <div id="d-links" class="hidden"></div>
+      </div>
+    </div>
+    <button id="d-next" type="button">▼</button>
+  </div>
+
+  <!-- MOBILE -->
+  <div id="dpad" class="hidden">
+    <button id="dp-up" type="button">▲</button>
+    <button id="dp-left" type="button">◀</button>
+    <button id="dp-right" type="button">▶</button>
+    <button id="dp-down" type="button">▼</button>
+  </div>
+  <button id="btn-a" class="hidden" type="button">A</button>
+
+  <div id="toast" class="hidden"></div>
+
+<div id="resume-screen" class="hidden">
+
+<div class="wrap">
+  <div class="topbar">
+    <a class="btn primary" href="#game" data-nav="game" data-i18n="back">◀ VOLTAR AO JOGO</a>
+    <span class="spacer"></span>
+    <button class="btn" id="lang-pt" type="button">PT</button>
+    <button class="btn" id="lang-en" type="button">EN</button>
+    <button class="btn" id="print" type="button" data-i18n="print">PDF</button>
+  </div>
+
+  <header class="hero">
+    <div class="handle">~/jucelinux $</div>
+    <h1>Jucelino de Queiroz Barros Junior</h1>
+    <div class="role" data-i18n="headline"></div>
+    <div class="meta">
+      São Paulo, Brasil ·
+      <a href="mailto:jucelino.qjr@gmail.com">jucelino.qjr@gmail.com</a> ·
+      <a href="https://github.com/jucelinux" target="_blank" rel="noopener">github.com/jucelinux</a> ·
+      <a href="https://www.linkedin.com/in/jucelino-junior-80a23223" target="_blank" rel="noopener">LinkedIn</a>
+    </div>
+  </header>
+
+  <section class="summary">
+    <h2 data-i18n="s_summary"></h2>
+    <p data-i18n="summary1"></p>
+    <p data-i18n="summary2"></p>
+  </section>
+
+  <section>
+    <h2 data-i18n="s_exp"></h2>
+
+    <div class="job">
+      <div class="job-head"><h3>Conta Simples</h3><span class="period" data-i18n="cs_period"></span></div>
+      <div class="role-line" data-i18n="cs_role"></div>
+      <p data-i18n="cs_intro"></p>
+
+      <div class="phase tl">
+        <div class="p-title" data-i18n="cs_tl_t"></div>
+        <p data-i18n="cs_tl_b"></p>
+      </div>
+      <div class="phase st">
+        <div class="p-title" data-i18n="cs_st_t"></div>
+        <p data-i18n="cs_st_b"></p>
+      </div>
+      <div class="phase ai">
+        <div class="p-title" data-i18n="cs_ai_t"></div>
+        <p data-i18n="cs_ai_b"></p>
+        <p data-i18n="cs_ai_b2"></p>
+      </div>
+    </div>
+
+    <div class="job">
+      <div class="job-head"><h3>iFood</h3><span class="period">2020 — 2021</span></div>
+      <div class="role-line">Senior Software Engineer</div>
+      <p data-i18n="ifood_b"></p>
+    </div>
+
+    <div class="job">
+      <div class="job-head"><h3>Mercado Livre</h3><span class="period">2019 — 2020</span></div>
+      <div class="role-line">Software Engineer</div>
+      <p data-i18n="meli_b"></p>
+    </div>
+
+    <div class="job">
+      <div class="job-head"><h3>Walmart.com</h3><span class="period">2016 — 2019</span></div>
+      <div class="role-line">Senior Technology Analyst</div>
+      <p data-i18n="walmart_b"></p>
+    </div>
+
+    <div class="job early">
+      <div class="job-head"><h3 data-i18n="early_t"></h3></div>
+      <p data-i18n="early_b"></p>
+    </div>
+  </section>
+
+  <section>
+    <h2 data-i18n="s_skills"></h2>
+    <div class="skills">
+      <div class="skill-group"><h4 data-i18n="g_ai"></h4><div class="tags">
+        <span class="tag">AI Platform Engineering</span><span class="tag">LLM Infrastructure</span>
+        <span class="tag">RAG</span><span class="tag">Agentic Systems</span>
+        <span class="tag">Multi-Agent Architectures</span><span class="tag">AI Governance</span>
+        <span class="tag">LLM Evaluation</span><span class="tag">Context Engineering</span>
+        <span class="tag">AWS Bedrock</span><span class="tag">Claude Agent SDK</span><span class="tag">Mastra AI</span>
+      </div></div>
+      <div class="skill-group"><h4 data-i18n="g_arch"></h4><div class="tags">
+        <span class="tag">Distributed Systems</span><span class="tag">Microservices</span>
+        <span class="tag">Event-Driven Architecture</span><span class="tag">DDD</span>
+        <span class="tag">CQRS</span><span class="tag">Clean Architecture</span>
+        <span class="tag">Hexagonal Architecture</span>
+      </div></div>
+      <div class="skill-group"><h4 data-i18n="g_backend"></h4><div class="tags">
+        <span class="tag">Kotlin</span><span class="tag">Java</span><span class="tag">TypeScript</span>
+        <span class="tag">Node.js</span><span class="tag">Spring Boot</span><span class="tag">Quarkus</span>
+      </div></div>
+      <div class="skill-group"><h4 data-i18n="g_cloud"></h4><div class="tags">
+        <span class="tag">AWS</span><span class="tag">Lambda</span><span class="tag">DynamoDB</span>
+        <span class="tag">S3</span><span class="tag">SNS/SQS</span>
+        <span class="tag">Docker</span><span class="tag">Kubernetes</span>
+      </div></div>
+      <div class="skill-group"><h4 data-i18n="g_data"></h4><div class="tags">
+        <span class="tag">PostgreSQL</span><span class="tag">MySQL</span><span class="tag">Oracle</span>
+        <span class="tag">Redis</span><span class="tag">MongoDB</span><span class="tag">Elasticsearch</span>
+      </div></div>
+      <div class="skill-group"><h4 data-i18n="g_obs"></h4><div class="tags">
+        <span class="tag">DataDog</span><span class="tag">Grafana</span>
+        <span class="tag">Kibana</span><span class="tag">New Relic</span>
+      </div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 data-i18n="s_edu"></h2>
+    <p class="edu" data-i18n="edu_b"></p>
+  </section>
+
+  <footer>
+    <span data-i18n="foot"></span>
+  </footer>
+</div>
+
+
+</div>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.85.2/phaser.min.js"></script>
+
+
+
+
+
+<script>
+/* ===== data.js ===== */
+/* ============================================================
+   data.js — conteúdo bilíngue (PT/EN)
+   Todos os fatos vêm do CV e das informações do Jucelino.
+   ============================================================ */
+
+window.I18N = {
+  pt: {
+    ui: {
+      pressStart: "PRESS START",
+      subtitle: "16-BIT CAREER EDITION",
+      langLabel: "IDIOMA",
+      insertCoin: "© 2026 JUCELINO BARROS",
+      bootHint: "Um currículo jogável. Use as setas para explorar.",
+      resumeMode: "MODO CURRÍCULO",
+      music: "MÚSICA",
+      next: "▼",
+      close: "FECHAR",
+      controlsDesk: "SETAS / WASD para andar · Z, ENTER ou ESPAÇO para interagir",
+      controlsMob: "Use o D-PAD para andar e o botão A para interagir",
+      prologueTitle: "PRÓLOGO — A ERA 8-BIT",
+      prologueBody:
+        "Antes dos grandes mundos, houve a fundação.\n\n" +
+        "2012 — Bacharel em Engenharia da Computação (UNIFIEO).\n\n" +
+        "Primeiras fases: Treelog (Grupo Abril), Citel Group, Autofax, Reserva Fácil, IT4Cloud, Embracon e Cota Melhor — construindo uma base sólida em backend, DevOps, mobile e software corporativo.\n\n" +
+        "Com o cartucho carregado de experiência, a jornada 16-bit começa.",
+      prologueBtn: "INICIAR JORNADA ▶",
+      questLog: "PROGRESSO",
+      complete: "JORNADA 100% COMPLETA!",
+      completeBody:
+        "Você explorou todos os mundos da carreira do Jucelino. O próximo capítulo pode incluir o seu time — o portal de contato está perto do ponto inicial.",
+      enterHint: "A / ENTER",
+      castleName: "CONTA SIMPLES",
+      overworldName: "OVERWORLD",
+      stairsUp: "SUBIR",
+      stairsDown: "DESCER",
+      exitCastle: "SAIR DO CASTELO",
+      lockedTop:
+        "O topo da torre está aberto. A subida espelha a jornada real: cada andar, um papel.",
+    },
+    speaker: "JUCELINUX",
+    spots: {
+      walmart: {
+        title: "WORLD 1 — WALMART.COM",
+        period: "2016 — 2019 · Senior Technology Analyst",
+        body:
+          "Minha primeira grande arena de escala. Aqui fui engenheiro backend responsável por desenvolver novas aplicações e evoluir sistemas operacionais críticos.\n\nAtuei com serviços de backend, suporte à produção, automação de infraestrutura e excelência operacional — o alicerce da disciplina de engenharia que carrego até hoje.",
+        chips: ["Backend", "Automação de infra", "Excelência operacional"],
+      },
+      meli: {
+        title: "WORLD 2 — MERCADO LIVRE",
+        period: "2019 — 2020 · Software Engineer",
+        body:
+          "A fase da alta vazão. Trabalhei na plataforma de notas fiscais eletrônicas usada pelo Mercado Livre Fulfillment.\n\nIntegrações com o governo (SEFAZ), processamento de alto throughput com mais de 100 TPS, arquitetura event-driven, circuit breakers e estratégias de retry para alta disponibilidade.",
+        chips: ["SEFAZ", "100+ TPS", "Event-driven", "Circuit breakers"],
+      },
+      ifood: {
+        title: "WORLD 3 — IFOOD",
+        period: "2020 — 2021 · Senior Software Engineer",
+        body:
+          "Um dos maiores marketplaces B2B do Brasil. Liderei a modernização da plataforma através de uma arquitetura de microsserviços event-driven.\n\nRefatoração do marketplace, engine de campanhas, serviço de pedidos com ciclo de vida guiado por máquina de estados, engine de precificação de alta performance, mentoria técnica e definição de arquitetura.\n\nStack: Kotlin, Java, Kubernetes, PostgreSQL, Kafka.",
+        chips: ["Kotlin", "Kafka", "Microsserviços", "State machines"],
+      },
+      sidequest: {
+        title: "SIDE QUEST — TREINAMENTO SECRETO",
+        period: "2024 · Jornada pessoal em IA generativa",
+        body:
+          "Toda grande habilidade começa fora do campo de batalha.\n\nNo início de 2024 mergulhei por conta própria em IA generativa e desenvolvimento de agentes: validei o paper Generative Agents e me aprofundei em Pocket Flow, LangChain, Google ADK, Ollama, GPT e CrewAI.\n\nEsse treinamento consolidou o conhecimento que mais tarde me tornaria a referência técnica do tema na Conta Simples.",
+        chips: ["Generative Agents", "LangChain", "Google ADK", "Ollama", "CrewAI", "Pocket Flow"],
+      },
+      contact: {
+        title: "PORTAL DE CONTATO",
+        period: "São Paulo, Brasil",
+        body:
+          "Quer conversar sobre plataformas de IA, sistemas distribuídos ou o próximo capítulo desta jornada?",
+        chips: [],
+      },
+      castleGate: {
+        title: "CASTELO CONTA SIMPLES",
+        period: "2021 — presente",
+        body:
+          "O mundo final — e o mais alto. Três andares, três papéis, uma progressão real.\n\nEntre e suba a torre: Tech Lead, Staff Engineer e, no topo, AI Lead.",
+        chips: ["Fintech B2B", "3 andares"],
+      },
+      techlead: {
+        title: "ANDAR 1 — TECH LEAD",
+        period: "2021 — 2023",
+        body:
+          "Cheguei à Conta Simples para liderar squads de produto, nesta ordem de jornada:\n\n1. Múltiplos usuários\n2. Uso e compra com cartão\n3. Gestão de despesas\n\nLiderança técnica próxima do produto: arquitetura, execução e evolução de times em uma fintech em pleno crescimento.",
+        chips: ["Múltiplos usuários", "Cartão", "Gestão de despesas"],
+      },
+      staff: {
+        title: "ANDAR 2 — STAFF ENGINEER",
+        period: "2023 — Q2 2025",
+        body:
+          "A fase cross. Como Staff Engineer, atuei transversalmente nos temas de engenharia da companhia — arquitetura, padrões e direção técnica — e me consolidei como a referência técnica da tribo de gestão de despesas.\n\nRevisões de arquitetura, RFCs técnicos, mentoria de engenheiros seniores e planejamento arquitetural de longo prazo.",
+        chips: ["Atuação cross", "Referência técnica", "RFCs", "Mentoria"],
+      },
+      ailead: {
+        title: "TOPO DA TORRE — AI LEAD",
+        period: "Q3 2025 — presente",
+        body:
+          "O treinamento secreto encontrou seu propósito. Me estabeleci como a referência técnica de IA na Conta Simples, liderando o tema de IA em produto.\n\nArquitetei e implementei a plataforma de IA para o produto Conta Simples — LLM Gateway, roteamento de modelos, abstração de provedores, padronização de SDK e agentes — construída sobre AWS Bedrock, Claude Agent SDK e Mastra.\n\nAlém do produto, atuo no tema estratégico: apoio a companhia na definição da stack de IA usada a nível operacional.",
+        chips: ["LLM Gateway", "Model Routing", "AI SDK", "Agentes", "Bedrock", "Mastra"],
+      },
+    },
+    hudSpots: {
+      walmart: "WALMART.COM",
+      meli: "MERCADO LIVRE",
+      ifood: "IFOOD",
+      sidequest: "???",
+      castleGate: "CONTA SIMPLES",
+      contact: "CONTATO",
+      techlead: "ANDAR 1 · TECH LEAD",
+      staff: "ANDAR 2 · STAFF",
+      ailead: "TOPO · AI LEAD",
+    },
+    links: {
+      email: "jucelino.qjr@gmail.com",
+      github: "github.com/jucelinux",
+      linkedin: "linkedin.com/in/jucelino-junior-80a23223",
+    },
+  },
+
+  en: {
+    ui: {
+      pressStart: "PRESS START",
+      subtitle: "16-BIT CAREER EDITION",
+      langLabel: "LANGUAGE",
+      insertCoin: "© 2026 JUCELINO BARROS",
+      bootHint: "A playable résumé. Use the arrow keys to explore.",
+      resumeMode: "RESUME MODE",
+      music: "MUSIC",
+      next: "▼",
+      close: "CLOSE",
+      controlsDesk: "ARROWS / WASD to walk · Z, ENTER or SPACE to interact",
+      controlsMob: "Use the D-PAD to walk and the A button to interact",
+      prologueTitle: "PROLOGUE — THE 8-BIT ERA",
+      prologueBody:
+        "Before the great worlds, there was the foundation.\n\n" +
+        "2012 — B.Sc. in Computer Engineering (UNIFIEO).\n\n" +
+        "Early stages: Treelog (Grupo Abril), Citel Group, Autofax, Reserva Fácil, IT4Cloud, Embracon and Cota Melhor — building a strong base in backend, DevOps, mobile and enterprise software.\n\n" +
+        "With the cartridge loaded with experience, the 16-bit journey begins.",
+      prologueBtn: "START JOURNEY ▶",
+      questLog: "PROGRESS",
+      complete: "JOURNEY 100% COMPLETE!",
+      completeBody:
+        "You explored every world of Jucelino's career. The next chapter could include your team — the contact portal is near the starting point.",
+      enterHint: "A / ENTER",
+      castleName: "CONTA SIMPLES",
+      overworldName: "OVERWORLD",
+      stairsUp: "GO UP",
+      stairsDown: "GO DOWN",
+      exitCastle: "LEAVE CASTLE",
+      lockedTop:
+        "The top of the tower is open. The climb mirrors the real journey: one floor per role.",
+    },
+    speaker: "JUCELINUX",
+    spots: {
+      walmart: {
+        title: "WORLD 1 — WALMART.COM",
+        period: "2016 — 2019 · Senior Technology Analyst",
+        body:
+          "My first big arena of scale. I was a backend engineer responsible for building new applications and improving critical operational systems.\n\nBackend services, production support, infrastructure automation and operational excellence — the foundation of the engineering discipline I carry to this day.",
+        chips: ["Backend", "Infra automation", "Operational excellence"],
+      },
+      meli: {
+        title: "WORLD 2 — MERCADO LIVRE",
+        period: "2019 — 2020 · Software Engineer",
+        body:
+          "The high-throughput stage. I worked on the electronic invoice platform used by Mercado Livre Fulfillment.\n\nGovernment integrations (SEFAZ), high-throughput processing above 100 TPS, event-driven architecture, circuit breakers and retry strategies for high availability.",
+        chips: ["SEFAZ", "100+ TPS", "Event-driven", "Circuit breakers"],
+      },
+      ifood: {
+        title: "WORLD 3 — IFOOD",
+        period: "2020 — 2021 · Senior Software Engineer",
+        body:
+          "One of Brazil's largest B2B marketplaces. I led the modernization of the platform through an event-driven microservices architecture.\n\nMarketplace refactoring, campaign engine, order service with a state-machine driven lifecycle, high-performance pricing engine, technical mentoring and architecture definition.\n\nStack: Kotlin, Java, Kubernetes, PostgreSQL, Kafka.",
+        chips: ["Kotlin", "Kafka", "Microservices", "State machines"],
+      },
+      sidequest: {
+        title: "SIDE QUEST — SECRET TRAINING",
+        period: "2024 · Personal journey into generative AI",
+        body:
+          "Every great skill begins away from the battlefield.\n\nIn early 2024 I dove into generative AI and agent development on my own: I validated the Generative Agents paper and went deep into Pocket Flow, LangChain, Google ADK, Ollama, GPT and CrewAI.\n\nThat training consolidated the knowledge that would later make me the technical reference on the subject at Conta Simples.",
+        chips: ["Generative Agents", "LangChain", "Google ADK", "Ollama", "CrewAI", "Pocket Flow"],
+      },
+      contact: {
+        title: "CONTACT PORTAL",
+        period: "São Paulo, Brazil",
+        body:
+          "Want to talk about AI platforms, distributed systems, or the next chapter of this journey?",
+        chips: [],
+      },
+      castleGate: {
+        title: "CONTA SIMPLES CASTLE",
+        period: "2021 — present",
+        body:
+          "The final — and tallest — world. Three floors, three roles, one real progression.\n\nStep in and climb the tower: Tech Lead, Staff Engineer and, at the top, AI Lead.",
+        chips: ["B2B fintech", "3 floors"],
+      },
+      techlead: {
+        title: "FLOOR 1 — TECH LEAD",
+        period: "2021 — 2023",
+        body:
+          "I joined Conta Simples to lead product squads, in this order:\n\n1. Multi-user accounts\n2. Card usage & purchases\n3. Expense management\n\nHands-on technical leadership close to the product: architecture, delivery and team growth inside a fast-growing fintech.",
+        chips: ["Multi-user", "Cards", "Expense management"],
+      },
+      staff: {
+        title: "FLOOR 2 — STAFF ENGINEER",
+        period: "2023 — Q2 2025",
+        body:
+          "The cross-cutting phase. As a Staff Engineer I worked across the company's engineering topics — architecture, standards and technical direction — and became the technical reference of the expense management tribe.\n\nArchitecture reviews, technical RFCs, mentoring senior engineers and long-term architectural planning.",
+        chips: ["Cross-cutting", "Technical reference", "RFCs", "Mentoring"],
+      },
+      ailead: {
+        title: "TOP OF THE TOWER — AI LEAD",
+        period: "Q3 2025 — present",
+        body:
+          "The secret training found its purpose. I established myself as the technical reference for AI at Conta Simples, leading AI in product.\n\nI architected and implemented the AI platform for the Conta Simples product — LLM Gateway, model routing, provider abstraction, SDK standardization and agents — built on AWS Bedrock, the Claude Agent SDK and Mastra.\n\nBeyond product, I act on the strategic front: supporting the company in defining the AI stack used at the operational level.",
+        chips: ["LLM Gateway", "Model Routing", "AI SDK", "Agents", "Bedrock", "Mastra"],
+      },
+    },
+    hudSpots: {
+      walmart: "WALMART.COM",
+      meli: "MERCADO LIVRE",
+      ifood: "IFOOD",
+      sidequest: "???",
+      castleGate: "CONTA SIMPLES",
+      contact: "CONTACT",
+      techlead: "FLOOR 1 · TECH LEAD",
+      staff: "FLOOR 2 · STAFF",
+      ailead: "TOP · AI LEAD",
+    },
+    links: {
+      email: "jucelino.qjr@gmail.com",
+      github: "github.com/jucelinux",
+      linkedin: "linkedin.com/in/jucelino-junior-80a23223",
+    },
+  },
+};
+
+/* Marcos de progresso (8 = 100%) */
+window.MILESTONES = [
+  "prologue",
+  "walmart",
+  "meli",
+  "ifood",
+  "sidequest",
+  "techlead",
+  "staff",
+  "ailead",
+];
+
+</script>
+<script>
+/* ===== art.js ===== */
+/* ============================================================
+   art.js — pixel art gerada por código
+   Personagem, retrato (estilo janela de comunicação), tiles,
+   prédios, castelo. Paleta 16-bit própria do projeto.
+   ============================================================ */
+(function () {
+  "use strict";
+
+  /* ---------- paleta ---------- */
+  var PAL = {
+    k: "#10121c", // outline
+    h: "#221b15", // cabelo
+    s: "#b5825a", // pele
+    d: "#8a5f3f", // pele sombra
+    m: "#241708", // bigode / cavanhaque
+    t: "#17171f", // camiseta preta
+    u: "#0d0d13", // camiseta sombra
+    j: "#2c3a6e", // calça
+    b: "#14161f", // sapato
+    w: "#f4f4f4", // branco
+    e: "#171009", // olhos / sobrancelha
+  };
+
+  /* ---------- personagem 16x20 (composição por partes) ---------- */
+  var HEAD_DOWN = [
+    "....kkkkkkkk....",
+    "...khhhhhhhhk...",
+    "..khhhhhhhhhhk..",
+    "..khsssssssshk..",
+    "..ksswesswessk..",
+    "..kssssddssssk..",
+    "..kssmmmmmmssk..",
+    "..kssssmmssssk..",
+    ".....kssssk.....",
+  ];
+  var HEAD_UP = [
+    "....kkkkkkkk....",
+    "...khhhhhhhhk...",
+    "..khhhhhhhhhhk..",
+    "..khhhhhhhhhhk..",
+    "..khhhhhhhhhhk..",
+    "..khhhhhhhhhhk..",
+    "..kshhhhhhhhsk..",
+    "...khhhhhhhhk...",
+    ".....kssssk.....",
+  ];
+  var HEAD_SIDE = [
+    "....kkkkkkkk....",
+    "...khhhhhhhhk...",
+    "..khhhhhhhhhhk..",
+    "..khhsssssssdk..",
+    "..khssswessssk..",
+    "..khsssssssdsk..",
+    "..khssssmmmmsk..",
+    "..khsssssmmssk..",
+    ".....kssssk.....",
+  ];
+  var TORSO = [
+    "...kttttttttk...",
+    "..kttttttttttk..",
+    "..kttuttttuttk..",
+    "..ksttttttttsk..",
+    "...kuttttttuk...",
+  ];
+  var LEGS_DOWN_IDLE = [
+    "...kjjjjjjjjk...",
+    "...kjjjkkjjjk...",
+    "...kjjk..kjjk...",
+    "...kjjk..kjjk...",
+    "...kbbk..kbbk...",
+    "..kkkkk..kkkkk..",
+  ];
+  var LEGS_DOWN_S1 = [
+    "...kjjjjjjjjk...",
+    "...kjjjkkjjjk...",
+    "...kjjk..kjjk...",
+    "...kjjk..kbbk...",
+    "...kbbk..kkkk...",
+    "..kkkkk.........",
+  ];
+  var LEGS_DOWN_S2 = [
+    "...kjjjjjjjjk...",
+    "...kjjjkkjjjk...",
+    "...kjjk..kjjk...",
+    "...kbbk..kjjk...",
+    "...kkkk..kbbk...",
+    ".........kkkkk..",
+  ];
+  var LEGS_SIDE_IDLE = [
+    "...kjjjjjjjjk...",
+    "....kjjjjjjk....",
+    ".....kjjjjk.....",
+    ".....kjjjjk.....",
+    ".....kbbbbk.....",
+    "....kkkkkkk.....",
+  ];
+  var LEGS_SIDE_S1 = [
+    "...kjjjjjjjjk...",
+    "....kjjkkjjk....",
+    "...kjjk..kjjk...",
+    "...kjjk..kjjk...",
+    "...kbbk..kbbk...",
+    "..kkkkk..kkkkk..",
+  ];
+
+  function compose(head, legs) {
+    return head.concat(TORSO, legs);
+  }
+
+  var CHAR_FRAMES = {
+    "down-0": compose(HEAD_DOWN, LEGS_DOWN_IDLE),
+    "down-1": compose(HEAD_DOWN, LEGS_DOWN_S1),
+    "down-2": compose(HEAD_DOWN, LEGS_DOWN_S2),
+    "up-0": compose(HEAD_UP, LEGS_DOWN_IDLE),
+    "up-1": compose(HEAD_UP, LEGS_DOWN_S1),
+    "up-2": compose(HEAD_UP, LEGS_DOWN_S2),
+    "side-0": compose(HEAD_SIDE, LEGS_SIDE_IDLE),
+    "side-1": compose(HEAD_SIDE, LEGS_SIDE_S1),
+  };
+
+  /* ---------- retrato 32x32, 2 quadros (boca fechada/aberta) ---------- */
+  var PORTRAIT_BASE = [
+    "................................",
+    "..........kkkkkkkkkkkk..........",
+    ".........khhhhhhhhhhhhk.........",
+    "........khhhhhhhhhhhhhhk........",
+    ".......khhhhhhhhhhhhhhhhk.......",
+    ".......khhhhhhhhhhhhhhhhk.......",
+    ".......khhdssssssssssdhhk.......",
+    ".......khsssssssssssssshk.......",
+    "......khsssssssssssssssshk......",
+    "......ksssseeeesseeeessssk......",
+    "......kssssweessssweessssk......",
+    "......kssssddssssssddssssk......",
+    "......ksssssssddddsssssssk......",
+    "......ksssssssdssdsssssssk......",
+    "......ksssssmmmmmmmmsssssk......",
+    "......k__________________k......", // linha da boca (varia)
+    "......k__________________k......", // linha da boca (varia)
+    "......ksssssssmmmmsssssssk......",
+    ".......kdsssssmmmmsssssdk.......",
+    "........kdssssmmmmssssdk........",
+    "...........kssssssssk...........",
+    "...........kdssssssdk...........",
+    "..........ksdssssssdsk..........",
+    "......kkttttt.ssssss.tttttkk....",
+    "....kkttttttttssssttttttttkk....",
+    "...kktttttttttkssktttttttttkk...",
+    "..kktttttttttttkktttttttttttkk..",
+    "..kttttttttttttttttttttttttttk..",
+    ".kttttttttttttuuuuttttttttttttk.",
+    ".kttttttttttttttttttttttttttttk.",
+    ".kttttttttttttttttttttttttttttk.",
+    ".kttttttttttttttttttttttttttttk.",
+  ];
+  var MOUTH_CLOSED = ["sssssmeeeeeemsssss", "ssssssdddddddsssss"];
+  var MOUTH_OPEN = ["sssssmkwwwwkmsssss", "ssssssmkkkkmssssss"];
+
+  function portraitFrame(mouth) {
+    return PORTRAIT_BASE.map(function (row, i) {
+      if (i === 15) return "......k" + mouth[0] + "k......";
+      if (i === 16) return "......k" + mouth[1] + "k......";
+      return row;
+    });
+  }
+  var PORTRAIT_FRAMES = [portraitFrame(MOUTH_CLOSED), portraitFrame(MOUTH_OPEN)];
+
+  /* valida grades (evita erro silencioso de contagem de pixels) */
+  function validate(name, rows, w) {
+    rows.forEach(function (r, i) {
+      if (r.length !== w)
+        console.warn("[art] grade irregular:", name, "linha", i, "tem", r.length, "esperado", w);
+    });
+  }
+  Object.keys(CHAR_FRAMES).forEach(function (k) { validate(k, CHAR_FRAMES[k], 16); });
+  PORTRAIT_FRAMES.forEach(function (f, i) { validate("portrait" + i, f, 32); });
+
+  /* ---------- desenho genérico de grade ---------- */
+  function drawGrid(ctx, rows, ox, oy, px) {
+    px = px || 1;
+    for (var y = 0; y < rows.length; y++) {
+      for (var x = 0; x < rows[y].length; x++) {
+        var c = rows[y][x];
+        if (c === "." || c === "_") continue;
+        var col = PAL[c];
+        if (!col) continue;
+        ctx.fillStyle = col;
+        ctx.fillRect(ox + x * px, oy + y * px, px, px);
+      }
+    }
+  }
+
+  function gridTexture(scene, key, rows) {
+    var w = rows[0].length, h = rows.length;
+    var cv = scene.textures.createCanvas(key, w, h);
+    drawGrid(cv.getContext(), rows, 0, 0, 1);
+    cv.refresh();
+  }
+
+  /* ---------- pintura utilitária ---------- */
+  function R(ctx, x, y, w, h, c) { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); }
+
+  /* ---------- tiles 16x16 ---------- */
+  function tileGrass(ctx, alt) {
+    R(ctx, 0, 0, 16, 16, alt ? "#3c7a4f" : "#3f8253");
+    var dots = alt ? [[2,3],[9,6],[13,12],[5,11],[11,2]] : [[4,5],[12,9],[7,13],[1,10],[14,3]];
+    dots.forEach(function (p) { R(ctx, p[0], p[1], 1, 1, "#57a26b"); });
+    R(ctx, 6, 8, 1, 1, "#2f6440");
+  }
+  function tilePath(ctx) {
+    R(ctx, 0, 0, 16, 16, "#c9a06a");
+    R(ctx, 0, 0, 16, 1, "#dcb67e");
+    [[3,4],[11,7],[6,12],[13,13],[2,9]].forEach(function (p) { R(ctx, p[0], p[1], 2, 1, "#a9814f"); });
+  }
+  function tileWater(ctx, phase) {
+    R(ctx, 0, 0, 16, 16, "#2a5aa8");
+    var ys = phase ? [3, 9, 14] : [5, 11, 1];
+    ys.forEach(function (y) { R(ctx, 2, y, 5, 1, "#4a86d8"); R(ctx, 10, (y + 3) % 16, 4, 1, "#4a86d8"); });
+  }
+  function tileTree(ctx) {
+    tileGrass(ctx, false);
+    R(ctx, 6, 10, 4, 5, "#5b3a24");
+    R(ctx, 1, 2, 14, 9, "#1f5c33");
+    R(ctx, 2, 1, 12, 2, "#1f5c33");
+    R(ctx, 3, 3, 4, 2, "#38b764");
+    R(ctx, 9, 5, 4, 2, "#38b764");
+    R(ctx, 5, 7, 3, 2, "#2a7d47");
+    R(ctx, 1, 2, 1, 1, "#10121c"); R(ctx, 14, 2, 1, 1, "#10121c");
+  }
+  function tileFlower(ctx) {
+    tileGrass(ctx, true);
+    R(ctx, 7, 6, 2, 2, "#ef7d57"); R(ctx, 6, 7, 1, 1, "#ffcd75");
+    R(ctx, 8, 10, 1, 3, "#2a7d47");
+    R(ctx, 2, 3, 2, 2, "#ffcd75");
+  }
+  function tileWallStone(ctx) {
+    R(ctx, 0, 0, 16, 16, "#4c5573");
+    R(ctx, 0, 0, 16, 1, "#5f6a8f"); R(ctx, 0, 8, 16, 1, "#5f6a8f");
+    R(ctx, 0, 4, 16, 1, "#39415c"); R(ctx, 0, 12, 16, 1, "#39415c");
+    R(ctx, 4, 1, 1, 3, "#39415c"); R(ctx, 11, 5, 1, 3, "#39415c");
+    R(ctx, 7, 9, 1, 3, "#39415c"); R(ctx, 2, 13, 1, 3, "#39415c");
+  }
+  function tileFloorWood(ctx) {
+    R(ctx, 0, 0, 16, 16, "#7a5636");
+    R(ctx, 0, 0, 16, 1, "#8d6743"); R(ctx, 0, 8, 16, 1, "#8d6743");
+    R(ctx, 0, 5, 16, 1, "#5f4128"); R(ctx, 0, 13, 16, 1, "#5f4128");
+    R(ctx, 5, 1, 1, 4, "#5f4128"); R(ctx, 12, 9, 1, 4, "#5f4128");
+  }
+  function tileCarpet(ctx) {
+    R(ctx, 0, 0, 16, 16, "#8d2f3e");
+    R(ctx, 0, 0, 16, 1, "#a84355"); R(ctx, 0, 15, 16, 1, "#5f1c28");
+    R(ctx, 7, 7, 2, 2, "#ffcd75");
+  }
+  function tileStairs(ctx) {
+    R(ctx, 0, 0, 16, 16, "#4c5573");
+    for (var i = 0; i < 4; i++) {
+      R(ctx, 0, i * 4, 16, 2, "#6b7699");
+      R(ctx, 0, i * 4 + 2, 16, 2, "#2e3550");
+    }
+  }
+  function tileVoid(ctx) { R(ctx, 0, 0, 16, 16, "#0b0c12"); }
+
+  /* ---------- objetos maiores ---------- */
+  function drawBuilding(ctx, w, h, wall, roof, awn) {
+    R(ctx, 0, 10, w, h - 10, wall);
+    R(ctx, 0, 10, w, 2, "#10121c");
+    R(ctx, 2, 0, w - 4, 10, roof);
+    R(ctx, 0, 8, w, 3, roof);
+    R(ctx, 0, 8, w, 1, "#10121c");
+    // janelas
+    for (var x = 8; x < w - 12; x += 16) {
+      R(ctx, x, 18, 8, 8, "#173a63");
+      R(ctx, x + 1, 19, 3, 3, "#73eff7");
+      R(ctx, x, 18, 8, 1, "#10121c"); R(ctx, x, 25, 8, 1, "#10121c");
+    }
+    // porta
+    var dx = Math.floor(w / 2) - 6;
+    R(ctx, dx, h - 16, 12, 16, "#10121c");
+    R(ctx, dx + 1, h - 15, 10, 15, "#5b3a24");
+    R(ctx, dx + 8, h - 9, 2, 2, "#ffcd75");
+    // toldo
+    R(ctx, dx - 4, h - 20, 20, 4, awn);
+    R(ctx, dx - 4, h - 20, 20, 1, "#10121c");
+  }
+  function texBuilding(scene, key, wall, roof, awn) {
+    var w = 80, h = 56;
+    var cv = scene.textures.createCanvas(key, w, h);
+    drawBuilding(cv.getContext(), w, h, wall, roof, awn);
+    cv.refresh();
+  }
+
+  function texCastle(scene) {
+    var w = 112, h = 96;
+    var cv = scene.textures.createCanvas("castle", w, h);
+    var c = cv.getContext();
+    // torres laterais
+    [0, w - 24].forEach(function (x) {
+      R(c, x, 16, 24, h - 16, "#4c5573");
+      R(c, x, 16, 24, 2, "#10121c");
+      for (var i = 0; i < 3; i++) R(c, x + i * 9, 8, 6, 8, "#4c5573");
+      R(c, x + 8, 30, 8, 12, "#173a63");
+      R(c, x + 9, 31, 3, 4, "#73eff7");
+    });
+    // corpo central
+    R(c, 20, 32, w - 40, h - 32, "#5f6a8f");
+    R(c, 20, 32, w - 40, 2, "#10121c");
+    for (var i = 0; i < 5; i++) R(c, 24 + i * 14, 22, 8, 10, "#5f6a8f");
+    // bandeira
+    R(c, 54, 0, 2, 24, "#10121c");
+    R(c, 56, 2, 14, 8, "#38b764");
+    R(c, 58, 4, 2, 4, "#f4f4f4"); R(c, 62, 4, 2, 4, "#f4f4f4"); R(c, 66, 4, 2, 4, "#f4f4f4");
+    // janelas corpo
+    [30, 70].forEach(function (x) {
+      R(c, x, 44, 10, 14, "#173a63");
+      R(c, x + 1, 45, 4, 5, "#73eff7");
+    });
+    // portão
+    R(c, 46, h - 28, 20, 28, "#10121c");
+    R(c, 48, h - 26, 16, 26, "#5b3a24");
+    R(c, 48, h - 26, 16, 3, "#3d2718");
+    R(c, 54, h - 14, 3, 3, "#ffcd75");
+    cv.refresh();
+  }
+
+  function texDojo(scene) {
+    var w = 64, h = 48;
+    var cv = scene.textures.createCanvas("dojo", w, h);
+    var c = cv.getContext();
+    R(c, 4, 16, w - 8, h - 16, "#6e4a2f");
+    R(c, 0, 8, w, 10, "#8d2f3e");
+    R(c, 4, 4, w - 8, 6, "#8d2f3e");
+    R(c, 0, 8, w, 2, "#10121c");
+    R(c, 26, h - 18, 12, 18, "#10121c");
+    R(c, 27, h - 17, 10, 17, "#2b1c10");
+    R(c, 10, 24, 8, 8, "#ffcd75");
+    R(c, 46, 24, 8, 8, "#ffcd75");
+    R(c, 10, 24, 8, 1, "#10121c"); R(c, 46, 24, 8, 1, "#10121c");
+    cv.refresh();
+  }
+
+  function texSign(scene) {
+    var cv = scene.textures.createCanvas("sign", 16, 16);
+    var c = cv.getContext();
+    R(c, 7, 8, 2, 8, "#5b3a24");
+    R(c, 2, 2, 12, 7, "#8d6743");
+    R(c, 2, 2, 12, 1, "#a9814f"); R(c, 2, 8, 12, 1, "#3d2718");
+    R(c, 4, 4, 8, 1, "#3d2718"); R(c, 4, 6, 6, 1, "#3d2718");
+    cv.refresh();
+  }
+
+  function texPortal(scene) {
+    var cv = scene.textures.createCanvas("portal", 24, 28);
+    var c = cv.getContext();
+    R(c, 2, 2, 20, 24, "#1b2a4a");
+    R(c, 4, 4, 16, 20, "#41a6f6");
+    R(c, 6, 6, 12, 16, "#73eff7");
+    R(c, 9, 9, 6, 10, "#f4f4f4");
+    R(c, 2, 2, 20, 2, "#10121c"); R(c, 2, 24, 20, 2, "#10121c");
+    R(c, 2, 2, 2, 24, "#10121c"); R(c, 20, 2, 2, 24, "#10121c");
+    cv.refresh();
+  }
+
+  function texDesk(scene) {
+    var cv = scene.textures.createCanvas("desk", 32, 22);
+    var c = cv.getContext();
+    R(c, 0, 6, 32, 10, "#8d6743");
+    R(c, 0, 6, 32, 2, "#a9814f");
+    R(c, 2, 16, 4, 6, "#5b3a24"); R(c, 26, 16, 4, 6, "#5b3a24");
+    R(c, 8, 0, 12, 8, "#22263b");
+    R(c, 9, 1, 10, 6, "#73eff7");
+    R(c, 11, 2, 6, 1, "#f4f4f4"); R(c, 11, 4, 4, 1, "#38b764");
+    cv.refresh();
+  }
+
+  function texRack(scene) {
+    var cv = scene.textures.createCanvas("rack", 20, 34);
+    var c = cv.getContext();
+    R(c, 0, 0, 20, 34, "#191d2e");
+    R(c, 0, 0, 20, 1, "#2e3550"); R(c, 0, 33, 20, 1, "#10121c");
+    for (var i = 0; i < 5; i++) {
+      R(c, 2, 3 + i * 6, 16, 4, "#22263b");
+      R(c, 4, 4 + i * 6, 2, 2, i % 2 ? "#38b764" : "#ef7d57");
+      R(c, 8, 4 + i * 6, 2, 2, "#ffcd75");
+      R(c, 12, 4 + i * 6, 4, 2, "#173a63");
+    }
+    cv.refresh();
+  }
+
+  function texBanner(scene) {
+    var cv = scene.textures.createCanvas("banner", 12, 20);
+    var c = cv.getContext();
+    R(c, 0, 0, 12, 2, "#8d6743");
+    R(c, 1, 2, 10, 14, "#38b764");
+    R(c, 1, 16, 4, 3, "#38b764"); R(c, 7, 16, 4, 3, "#38b764");
+    R(c, 4, 6, 4, 4, "#ffcd75");
+    cv.refresh();
+  }
+
+  /* ---------- API pública ---------- */
+  window.ART = {
+    PAL: PAL,
+
+    buildAll: function (scene) {
+      // personagem
+      Object.keys(CHAR_FRAMES).forEach(function (k) {
+        gridTexture(scene, "hero-" + k, CHAR_FRAMES[k]);
+      });
+      // tiles
+      var defs = {
+        grass: function (c) { tileGrass(c, false); },
+        grass2: function (c) { tileGrass(c, true); },
+        path: tilePath,
+        water0: function (c) { tileWater(c, 0); },
+        water1: function (c) { tileWater(c, 1); },
+        tree: tileTree,
+        flower: tileFlower,
+        wall: tileWallStone,
+        floor: tileFloorWood,
+        carpet: tileCarpet,
+        stairs: tileStairs,
+        void: tileVoid,
+      };
+      Object.keys(defs).forEach(function (k) {
+        var cv = scene.textures.createCanvas("t-" + k, 16, 16);
+        defs[k](cv.getContext());
+        cv.refresh();
+      });
+      // objetos
+      texBuilding(scene, "b-walmart", "#2a5aa8", "#1b3c74", "#ffcd75");
+      texBuilding(scene, "b-meli", "#d8b13c", "#a9812a", "#2a5aa8");
+      texBuilding(scene, "b-ifood", "#c0392b", "#8d2f3e", "#f4f4f4");
+      texCastle(scene);
+      texDojo(scene);
+      texSign(scene);
+      texPortal(scene);
+      texDesk(scene);
+      texRack(scene);
+      texBanner(scene);
+    },
+
+    /* retrato no DOM (janela de briefing) */
+    drawPortraitTo: function (canvas, frame) {
+      var ctx = canvas.getContext("2d");
+      var px = Math.floor(canvas.width / 32) || 1;
+      ctx.imageSmoothingEnabled = false;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawGrid(ctx, PORTRAIT_FRAMES[frame ? 1 : 0], 0, 0, px);
+    },
+  };
+})();
+
+</script>
+<script>
+/* ===== audio.js ===== */
+/* ============================================================
+   audio.js — trilha ORIGINAL + SFX via Web Audio
+   Homenagem à sonoridade do Mega Drive (YM2612 + PSG):
+   baixo FM dançante, leads quadrados, percussão de ruído.
+   Composição própria — nenhuma melodia de terceiros.
+   ============================================================ */
+(function () {
+  "use strict";
+
+  var ctx = null;
+  var master, musicBus, sfxBus, delayNode, delayGain;
+  var musicOn = true;
+  var timer = null;
+
+  var BPM = 122;
+  var STEP = 60 / BPM / 4; // semicolcheia
+  var LOOKAHEAD = 0.12;
+  var TICK = 40; // ms
+
+  /* ---------- composição (original) ----------
+     Tom: Lá menor. Progresso por compasso (16 steps cada):
+     Am Am F G | Am Am F G  (8 compassos por loop)          */
+  var ROOTS = [55.0, 55.0, 43.65, 49.0, 55.0, 55.0, 43.65, 49.0]; // A1 A1 F1 G1 ...
+  var CHORDS = [
+    [220.0, 261.63, 329.63], // Am (A3 C4 E4)
+    [220.0, 261.63, 329.63],
+    [174.61, 220.0, 261.63], // F  (F3 A3 C4)
+    [196.0, 246.94, 293.66], // G  (G3 B3 D4)
+    [220.0, 261.63, 329.63],
+    [220.0, 261.63, 329.63],
+    [174.61, 220.0, 261.63],
+    [196.0, 246.94, 293.66],
+  ];
+  // riff de baixo (offsets em semitons a partir da raiz; null = pausa)
+  var BASS = [0, null, 12, null, 0, null, 10, 12, 0, null, 12, null, 7, null, 10, 12];
+  // melodia (freqs em Hz; entra nos compassos 5–8) — pentatônica de Lá menor
+  var A4 = 440, C5 = 523.25, D5 = 587.33, E5 = 659.25, G4 = 392, G5 = 783.99;
+  var LEAD = [
+    // compasso 5
+    [A4, null, C5, null, E5, null, D5, C5, A4, null, null, null, G4, null, A4, null],
+    // compasso 6
+    [null, null, E5, null, G5, null, E5, D5, C5, null, D5, null, E5, null, null, null],
+    // compasso 7
+    [C5, null, null, A4, null, C5, null, D5, C5, null, A4, null, G4, null, null, null],
+    // compasso 8
+    [A4, null, G4, A4, null, null, C5, null, D5, E5, null, D5, C5, null, A4, null],
+  ];
+
+  var step = 0;
+  var nextTime = 0;
+
+  function ensureCtx() {
+    if (ctx) return;
+    var AC = window.AudioContext || window.webkitAudioContext;
+    ctx = new AC();
+    master = ctx.createGain(); master.gain.value = 0.55; master.connect(ctx.destination);
+    musicBus = ctx.createGain(); musicBus.gain.value = 1; musicBus.connect(master);
+    sfxBus = ctx.createGain(); sfxBus.gain.value = 0.9; sfxBus.connect(master);
+    delayNode = ctx.createDelay(0.6); delayNode.delayTime.value = STEP * 3;
+    delayGain = ctx.createGain(); delayGain.gain.value = 0.28;
+    delayNode.connect(delayGain); delayGain.connect(delayNode); delayGain.connect(musicBus);
+  }
+
+  /* ---------- instrumentos ---------- */
+  function env(g, t, a, peak, dec) {
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(peak, t + a);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + a + dec);
+  }
+  function noiseBuf() {
+    var b = ctx.createBuffer(1, ctx.sampleRate * 0.3, ctx.sampleRate);
+    var d = b.getChannelData(0);
+    for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    return b;
+  }
+  var NOISE = null;
+
+  function kick(t) {
+    var o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(130, t);
+    o.frequency.exponentialRampToValueAtTime(42, t + 0.12);
+    env(g, t, 0.002, 0.9, 0.16);
+    o.connect(g); g.connect(musicBus);
+    o.start(t); o.stop(t + 0.2);
+  }
+  function hat(t, loud) {
+    var s = ctx.createBufferSource(); s.buffer = NOISE;
+    var f = ctx.createBiquadFilter(); f.type = "highpass"; f.frequency.value = 7500;
+    var g = ctx.createGain();
+    env(g, t, 0.001, loud ? 0.22 : 0.09, 0.045);
+    s.connect(f); f.connect(g); g.connect(musicBus);
+    s.start(t); s.stop(t + 0.06);
+  }
+  function clap(t) {
+    var s = ctx.createBufferSource(); s.buffer = NOISE;
+    var f = ctx.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 1900; f.Q.value = 0.8;
+    var g = ctx.createGain();
+    env(g, t, 0.001, 0.35, 0.11);
+    s.connect(f); f.connect(g); g.connect(musicBus);
+    s.start(t); s.stop(t + 0.14);
+  }
+  function bass(t, freq) {
+    var o1 = ctx.createOscillator(), o2 = ctx.createOscillator();
+    o1.type = "sawtooth"; o2.type = "square";
+    o1.frequency.value = freq; o2.frequency.value = freq / 2;
+    var f = ctx.createBiquadFilter(); f.type = "lowpass";
+    f.frequency.setValueAtTime(650, t);
+    f.frequency.exponentialRampToValueAtTime(180, t + 0.16);
+    var g = ctx.createGain();
+    env(g, t, 0.003, 0.5, 0.15);
+    var g2 = ctx.createGain(); g2.gain.value = 0.5;
+    o1.connect(f); o2.connect(g2); g2.connect(f);
+    f.connect(g); g.connect(musicBus);
+    o1.start(t); o2.start(t); o1.stop(t + 0.2); o2.stop(t + 0.2);
+  }
+  function stab(t, freqs) {
+    freqs.forEach(function (fr, i) {
+      var o = ctx.createOscillator(); o.type = "square";
+      o.frequency.value = fr * (i === 1 ? 1.004 : 1);
+      var f = ctx.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 1400;
+      var g = ctx.createGain();
+      env(g, t, 0.002, 0.075, 0.1);
+      o.connect(f); f.connect(g); g.connect(musicBus);
+      o.start(t); o.stop(t + 0.15);
+    });
+  }
+  function lead(t, freq) {
+    var o = ctx.createOscillator(); o.type = "square"; o.frequency.value = freq;
+    var v = ctx.createOscillator(); v.frequency.value = 5.5;
+    var vg = ctx.createGain(); vg.gain.value = 4;
+    v.connect(vg); vg.connect(o.frequency);
+    var f = ctx.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 2600;
+    var g = ctx.createGain();
+    env(g, t, 0.004, 0.16, 0.2);
+    o.connect(f); f.connect(g); g.connect(musicBus); g.connect(delayNode);
+    o.start(t); v.start(t); o.stop(t + 0.26); v.stop(t + 0.26);
+  }
+
+  /* ---------- sequenciador ---------- */
+  function schedule() {
+    while (nextTime < ctx.currentTime + LOOKAHEAD) {
+      var bar = Math.floor(step / 16) % 8;
+      var s = step % 16;
+
+      if (s % 4 === 0) kick(nextTime);
+      if (s % 4 === 2) hat(nextTime, true);
+      if (s % 4 === 1 || s % 4 === 3) { if (s === 7 || s === 15) hat(nextTime, false); }
+      if (s === 4 || s === 12) clap(nextTime);
+
+      var b = BASS[s];
+      if (b !== null) bass(nextTime, ROOTS[bar] * Math.pow(2, b / 12));
+
+      if (s === 3 || s === 11) stab(nextTime, CHORDS[bar]);
+
+      if (bar >= 4) {
+        var m = LEAD[bar - 4][s];
+        if (m) lead(nextTime, m);
+      }
+
+      nextTime += STEP;
+      step++;
+    }
+  }
+
+  /* ---------- SFX ---------- */
+  function blip(f1, f2, dur, vol, type) {
+    if (!ctx) return;
+    var t = ctx.currentTime;
+    var o = ctx.createOscillator(); o.type = type || "square";
+    o.frequency.setValueAtTime(f1, t);
+    if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    var g = ctx.createGain();
+    env(g, t, 0.001, vol, dur);
+    o.connect(g); g.connect(sfxBus);
+    o.start(t); o.stop(t + dur + 0.05);
+  }
+  function arp(freqs, gap, vol) {
+    if (!ctx) return;
+    freqs.forEach(function (f, i) {
+      var t = ctx.currentTime + i * gap;
+      var o = ctx.createOscillator(); o.type = "square"; o.frequency.value = f;
+      var g = ctx.createGain();
+      env(g, t, 0.002, vol, 0.14);
+      o.connect(g); g.connect(sfxBus);
+      o.start(t); o.stop(t + 0.2);
+    });
+  }
+
+  window.CHIP = {
+    start: function () {
+      ensureCtx();
+      if (ctx.state === "suspended") ctx.resume();
+      if (!NOISE) NOISE = noiseBuf();
+      if (timer) return;
+      step = 0;
+      nextTime = ctx.currentTime + 0.06;
+      timer = setInterval(function () { if (musicOn) schedule(); }, TICK);
+    },
+    toggleMusic: function () {
+      musicOn = !musicOn;
+      if (musicBus) musicBus.gain.value = musicOn ? 1 : 0;
+      if (musicOn && ctx) { nextTime = Math.max(nextTime, ctx.currentTime + 0.05); }
+      return musicOn;
+    },
+    isMusicOn: function () { return musicOn; },
+    sfx: {
+      tick: function () { blip(1650, null, 0.03, 0.05); },
+      confirm: function () { arp([523.25, 659.25, 880], 0.05, 0.2); },
+      open: function () { blip(300, 660, 0.09, 0.18); },
+      close: function () { blip(660, 300, 0.09, 0.14); },
+      stairs: function () { arp([392, 523.25], 0.06, 0.16); },
+      door: function () { blip(220, 110, 0.16, 0.2, "sawtooth"); },
+      quest: function () { arp([440, 523.25, 659.25, 880], 0.07, 0.22); },
+      fanfare: function () { arp([440, 554.37, 659.25, 880, 1108.73], 0.09, 0.24); },
+      bump: function () { blip(120, 90, 0.05, 0.1, "triangle"); },
+    },
+  };
+})();
+
+</script>
+<script>
+/* ===== game.js ===== */
+/* ============================================================
+   game.js — cenas Phaser, mundo, castelo, briefings e HUD
+   ============================================================ */
+(function () {
+  "use strict";
+
+  var TILE = 16;
+
+  /* ---------------- estado ---------------- */
+  var State = {
+    lang: null,
+    seen: {},
+    load: function () {
+      try {
+        var raw = localStorage.getItem("jlx-state");
+        if (raw) {
+          var s = JSON.parse(raw);
+          this.lang = s.lang || null;
+          this.seen = s.seen || {};
+        }
+      } catch (e) {}
+      if (!this.lang) {
+        this.lang = (navigator.language || "en").toLowerCase().indexOf("pt") === 0 ? "pt" : "en";
+      }
+    },
+    save: function () {
+      try {
+        localStorage.setItem("jlx-state", JSON.stringify({ lang: this.lang, seen: this.seen }));
+      } catch (e) {}
+    },
+    mark: function (id) {
+      if (window.MILESTONES.indexOf(id) >= 0 && !this.seen[id]) {
+        this.seen[id] = true;
+        this.save();
+        UI.updateXP();
+        if (UI.xpCount() === window.MILESTONES.length) {
+          setTimeout(function () { UI.showComplete(); }, 450);
+        } else if (id !== "prologue") {
+          CHIP.sfx.quest();
+        }
+      }
+    },
+  };
+  function T() { return window.I18N[State.lang]; }
+
+  /* ---------------- entrada virtual (mobile) ---------------- */
+  var VKeys = { up: false, down: false, left: false, right: false, action: false };
+
+  /* ---------------- geração do overworld ---------------- */
+  var OW_W = 44, OW_H = 30;
+
+  function seededRand(seed) {
+    return function () {
+      seed = (seed * 1664525 + 1013904223) % 4294967296;
+      return seed / 4294967296;
+    };
+  }
+
+  function makeOverworld() {
+    var rnd = seededRand(20120707);
+    var m = [];
+    for (var y = 0; y < OW_H; y++) {
+      var row = [];
+      for (var x = 0; x < OW_W; x++) {
+        var r = rnd();
+        row.push(r < 0.12 ? "G" : r < 0.16 ? "f" : "g");
+      }
+      m.push(row);
+    }
+    function set(x, y, c) { if (x >= 0 && x < OW_W && y >= 0 && y < OW_H) m[y][x] = c; }
+    function rect(x0, y0, x1, y1, c) {
+      for (var yy = y0; yy <= y1; yy++) for (var xx = x0; xx <= x1; xx++) set(xx, yy, c);
+    }
+    // borda de árvores
+    rect(0, 0, OW_W - 1, 0, "T"); rect(0, OW_H - 1, OW_W - 1, OW_H - 1, "T");
+    rect(0, 0, 0, OW_H - 1, "T"); rect(OW_W - 1, 0, OW_W - 1, OW_H - 1, "T");
+    rect(0, 1, OW_W - 1, 1, "T");
+    // lago sudoeste
+    rect(3, 22, 11, 27, "w");
+    rect(4, 21, 10, 21, "w");
+    // bosques decorativos
+    rect(14, 4, 17, 6, "T");
+    rect(27, 14, 30, 16, "T");
+    rect(3, 12, 5, 14, "T");
+    // muralha do bosque secreto (leste), com passagem escondida na linha 24
+    rect(35, 13, 35, 28, "T");
+    rect(35, 13, OW_W - 2, 13, "T");
+    set(35, 24, "g"); // passagem
+    set(35, 23, "f"); // pista sutil
+    // caminhos
+    rect(21, 8, 22, 27, "p");            // eixo central (castelo -> spawn)
+    rect(9, 19, 22, 20, "p");            // oeste p/ Walmart
+    rect(9, 9, 21, 10, "p");             // noroeste p/ MELI
+    rect(22, 9, 34, 10, "p");            // nordeste p/ iFood
+    return m.map(function (r) { return r.join(""); });
+  }
+
+  /* pontos de interesse do overworld (tiles) */
+  var OW_SPOTS = [
+    { id: "walmart", x: 7, y: 17, w: 6, h: 4, img: "b-walmart", ix: 9.5, iy: 19, label: "WALMART.COM" },
+    { id: "meli", x: 7, y: 7, w: 6, h: 4, img: "b-meli", ix: 9.5, iy: 9, label: "MERCADO LIVRE" },
+    { id: "ifood", x: 32, y: 7, w: 6, h: 4, img: "b-ifood", ix: 34.5, iy: 9, label: "IFOOD" },
+    { id: "sidequest", x: 37, y: 20, w: 5, h: 4, img: "dojo", ix: 39.5, iy: 22, label: "???" },
+    { id: "castleGate", x: 19, y: 5, w: 6, h: 4, img: "castle", ix: 22, iy: 8, label: "CONTA SIMPLES" },
+    { id: "contact", x: 25, y: 23, w: 3, h: 3, img: "portal", ix: 26, iy: 25, label: "" },
+  ];
+
+  /* ---------------- cena base com jogador ---------------- */
+  function addHero(scene, x, y) {
+    var hero = scene.physics.add.sprite(x, y, "hero-down-0");
+    hero.setDepth(y);
+    hero.body.setSize(10, 8);
+    hero.body.setOffset(3, 12);
+    hero.dir = "down";
+    hero.animTime = 0;
+    hero.animFrame = 0;
+    return hero;
+  }
+
+  function updateHero(scene, hero, dt) {
+    var speed = 92;
+    var vx = 0, vy = 0;
+    var c = scene.cursors, k = scene.wasd;
+    if (c.left.isDown || k.A.isDown || VKeys.left) vx = -1;
+    else if (c.right.isDown || k.D.isDown || VKeys.right) vx = 1;
+    if (c.up.isDown || k.W.isDown || VKeys.up) vy = -1;
+    else if (c.down.isDown || k.S.isDown || VKeys.down) vy = 1;
+    if (UI.dialogOpen) { vx = 0; vy = 0; }
+    if (vx && vy) { vx *= 0.7071; vy *= 0.7071; }
+    hero.setVelocity(vx * speed, vy * speed);
+
+    if (vx < 0) { hero.dir = "side"; hero.setFlipX(true); }
+    else if (vx > 0) { hero.dir = "side"; hero.setFlipX(false); }
+    else if (vy < 0) hero.dir = "up";
+    else if (vy > 0) hero.dir = "down";
+
+    var moving = vx !== 0 || vy !== 0;
+    if (moving) {
+      hero.animTime += dt;
+      if (hero.animTime > 140) {
+        hero.animTime = 0;
+        hero.animFrame = (hero.animFrame + 1) % (hero.dir === "side" ? 2 : 4);
+      }
+    } else {
+      hero.animFrame = 0;
+    }
+    var f;
+    if (hero.dir === "side") f = "hero-side-" + (moving ? hero.animFrame : 0);
+    else {
+      var seq = [0, 1, 0, 2];
+      f = "hero-" + hero.dir + "-" + (moving ? seq[hero.animFrame] : 0);
+    }
+    if (hero.texture.key !== f) hero.setTexture(f);
+    hero.setDepth(hero.y);
+  }
+
+  function bindKeys(scene) {
+    scene.cursors = scene.input.keyboard.createCursorKeys();
+    scene.wasd = scene.input.keyboard.addKeys("W,A,S,D");
+    scene.actionKeys = scene.input.keyboard.addKeys("Z,ENTER,SPACE");
+  }
+  function actionPressed(scene) {
+    var P = Phaser.Input.Keyboard.JustDown;
+    var kb = P(scene.actionKeys.Z) || P(scene.actionKeys.ENTER) || P(scene.actionKeys.SPACE);
+    var vt = VKeys.action; VKeys.action = false;
+    return kb || vt;
+  }
+
+  /* ---------------- Overworld ---------------- */
+  var OverworldScene = new Phaser.Class({
+    Extends: Phaser.Scene,
+    initialize: function () { Phaser.Scene.call(this, { key: "Overworld" }); },
+
+    create: function (data) {
+      var scene = this;
+      if (!scene.textures.exists("t-grass")) ART.buildAll(scene);
+
+      var map = makeOverworld();
+      scene.blocked = [];
+      var waterTiles = [];
+      for (var y = 0; y < OW_H; y++) {
+        scene.blocked.push([]);
+        for (var x = 0; x < OW_W; x++) {
+          var ch = map[y][x];
+          var key = { g: "t-grass", G: "t-grass2", f: "t-flower", p: "t-path", T: "t-tree", w: "t-water0" }[ch];
+          var img = scene.add.image(x * TILE + 8, y * TILE + 8, key).setDepth(ch === "T" ? y * TILE + 8 : -10);
+          if (ch === "w") waterTiles.push(img);
+          scene.blocked[y].push(ch === "T" || ch === "w");
+        }
+      }
+      // animação da água
+      scene.time.addEvent({ delay: 550, loop: true, callback: function () {
+        scene.waterPhase = !scene.waterPhase;
+        waterTiles.forEach(function (t) { t.setTexture(scene.waterPhase ? "t-water1" : "t-water0"); });
+      }});
+
+      // colisores do terreno
+      scene.solids = scene.physics.add.staticGroup();
+      for (y = 0; y < OW_H; y++) for (x = 0; x < OW_W; x++) {
+        if (scene.blocked[y][x]) {
+          var r = scene.add.rectangle(x * TILE + 8, y * TILE + 8, TILE, TILE);
+          scene.physics.add.existing(r, true);
+          scene.solids.add(r);
+        }
+      }
+
+      // pontos de interesse
+      scene.zones = [];
+      OW_SPOTS.forEach(function (s) {
+        var img = scene.add.image(s.ix * TILE, s.iy * TILE, s.img).setOrigin(0.5, 1);
+        img.setDepth(s.iy * TILE);
+        // corpo sólido do prédio (deixa a frente livre)
+        if (s.id !== "contact") {
+          var bw = img.width - 8, bh = img.height - 18;
+          var solid = scene.add.rectangle(s.ix * TILE, s.iy * TILE - bh / 2 - 2, bw, bh);
+          scene.physics.add.existing(solid, true);
+          scene.solids.add(solid);
+        }
+        if (s.label) {
+          var lbl = scene.add.text(s.ix * TILE, (s.iy - 0.4) * TILE - img.height, s.label, {
+            fontFamily: '"Press Start 2P"', fontSize: "7px", color: "#f4f4f4",
+            backgroundColor: "#10121cCC", padding: { x: 3, y: 2 },
+          }).setOrigin(0.5, 1).setDepth(9999).setResolution(3);
+          if (s.id === "sidequest") scene.sqLabel = lbl;
+        }
+        scene.zones.push({ id: s.id, x: s.x * TILE, y: s.y * TILE, w: s.w * TILE, h: s.h * TILE });
+      });
+      // placa de contato
+      scene.add.image(24 * TILE, 25 * TILE, "sign").setOrigin(0.5, 1).setDepth(25 * TILE);
+
+      // herói
+      var sx = (data && data.fromCastle) ? 22 * TILE : 22 * TILE;
+      var sy = (data && data.fromCastle) ? 9.6 * TILE : 26 * TILE;
+      scene.hero = addHero(scene, sx, sy);
+      scene.physics.add.collider(scene.hero, scene.solids);
+
+      scene.physics.world.setBounds(TILE, TILE, (OW_W - 2) * TILE, (OW_H - 2) * TILE);
+      scene.hero.setCollideWorldBounds(true);
+      scene.cameras.main.setBounds(0, 0, OW_W * TILE, OW_H * TILE);
+      scene.cameras.main.startFollow(scene.hero, true, 0.15, 0.15);
+      scene.cameras.main.setRoundPixels(true);
+
+      bindKeys(scene);
+      UI.setLocation(T().ui.overworldName);
+      scene.activeZone = null;
+      UI.activeScene = scene;
+      scene.refreshTexts = function () {
+        UI.setLocation(T().ui.overworldName);
+        if (scene.sqLabel && State.seen.sidequest) {
+          scene.sqLabel.setText(State.lang === "pt" ? "TREINAMENTO SECRETO" : "SECRET TRAINING");
+        }
+      };
+    },
+
+    update: function (time, dt) {
+      var scene = this;
+      updateHero(scene, scene.hero, dt);
+
+      // zona ativa
+      var hx = scene.hero.x, hy = scene.hero.y;
+      var z = null;
+      for (var i = 0; i < scene.zones.length; i++) {
+        var zz = scene.zones[i];
+        if (hx >= zz.x && hx <= zz.x + zz.w && hy >= zz.y && hy <= zz.y + zz.h) { z = zz; break; }
+      }
+      if (z !== scene.activeZone) {
+        scene.activeZone = z;
+        if (z) {
+          var name = T().hudSpots[z.id] || "";
+          UI.showPrompt(name);
+        } else UI.hidePrompt();
+      }
+      if (z && actionPressed(scene) && UI.canInteract()) {
+        if (z.id === "castleGate" && State.seen.castleGate) {
+          // já apresentado: entra direto
+          CHIP.sfx.door();
+          scene.scene.start("Castle");
+          UI.hidePrompt();
+          return;
+        }
+        UI.openDialog(z.id, function () {
+          if (z.id === "castleGate") {
+            CHIP.sfx.door();
+            scene.scene.start("Castle");
+          }
+          if (z.id === "sidequest" && scene.sqLabel) {
+            scene.sqLabel.setText(State.lang === "pt" ? "TREINAMENTO SECRETO" : "SECRET TRAINING");
+          }
+        });
+      } else if (z && actionPressed(scene)) {
+        /* absorve */
+      }
+    },
+  });
+
+  /* ---------------- Castelo ---------------- */
+  var CA_W = 16, CA_H = 34;
+
+  function makeCastle() {
+    var m = [];
+    for (var y = 0; y < CA_H; y++) {
+      var row = [];
+      for (var x = 0; x < CA_W; x++) row.push("F");
+      m.push(row);
+    }
+    function set(x, y, c) { m[y][x] = c; }
+    function rect(x0, y0, x1, y1, c) {
+      for (var yy = y0; yy <= y1; yy++) for (var xx = x0; xx <= x1; xx++) set(xx, yy, c);
+    }
+    rect(0, 0, CA_W - 1, 0, "W"); rect(0, CA_H - 1, CA_W - 1, CA_H - 1, "W");
+    rect(0, 0, 0, CA_H - 1, "W"); rect(CA_W - 1, 0, CA_W - 1, CA_H - 1, "W");
+    rect(1, 1, CA_W - 2, 1, "W");
+    rect(0, 11, CA_W - 1, 11, "W"); // divisa andar 3|2
+    rect(0, 22, CA_W - 1, 22, "W"); // divisa andar 2|1
+    rect(7, 2, 8, CA_H - 2, "c");   // tapete central
+    // escadas
+    rect(12, 23, 13, 24, "S"); rect(12, 19, 13, 20, "S");
+    rect(2, 12, 3, 13, "S"); rect(2, 8, 3, 9, "S");
+    // saída
+    rect(7, CA_H - 1, 8, CA_H - 1, "D");
+    return m;
+  }
+
+  var CastleScene = new Phaser.Class({
+    Extends: Phaser.Scene,
+    initialize: function () { Phaser.Scene.call(this, { key: "Castle" }); },
+
+    create: function () {
+      var scene = this;
+      var m = makeCastle();
+      scene.solids = scene.physics.add.staticGroup();
+      for (var y = 0; y < CA_H; y++) for (var x = 0; x < CA_W; x++) {
+        var ch = m[y][x];
+        var key = { F: "t-floor", W: "t-wall", c: "t-carpet", S: "t-stairs", D: "t-carpet" }[ch];
+        scene.add.image(x * TILE + 8, y * TILE + 8, key).setDepth(-10);
+        if (ch === "W") {
+          var r = scene.add.rectangle(x * TILE + 8, y * TILE + 8, TILE, TILE);
+          scene.physics.add.existing(r, true);
+          scene.solids.add(r);
+        }
+      }
+
+      // decoração + gatilhos por andar
+      function label(x, y, txt, color) {
+        return scene.add.text(x, y, txt, {
+          fontFamily: '"Press Start 2P"', fontSize: "7px", color: color || "#ffcd75",
+          backgroundColor: "#10121cCC", padding: { x: 3, y: 2 },
+        }).setOrigin(0.5).setDepth(9999).setResolution(3);
+      }
+      scene.floorLabels = [];
+      // Andar 1 — Tech Lead (embaixo)
+      scene.add.image(7.5 * TILE, 27 * TILE, "desk").setDepth(27 * TILE);
+      scene.add.image(3 * TILE, 23.6 * TILE, "banner").setDepth(1);
+      scene.floorLabels.push(label(7.5 * TILE, 25 * TILE, T().hudSpots.techlead));
+      // Andar 2 — Staff
+      scene.add.image(7.5 * TILE, 16 * TILE, "desk").setDepth(16 * TILE);
+      scene.add.image(12 * TILE, 12.6 * TILE, "banner").setDepth(1);
+      scene.floorLabels.push(label(7.5 * TILE, 14 * TILE, T().hudSpots.staff));
+      // Topo — AI Lead
+      scene.add.image(4.5 * TILE, 4.8 * TILE, "rack").setDepth(4.8 * TILE);
+      scene.add.image(11.5 * TILE, 4.8 * TILE, "rack").setDepth(4.8 * TILE);
+      scene.add.image(7.5 * TILE, 5 * TILE, "desk").setDepth(5 * TILE);
+      scene.floorLabels.push(label(7.5 * TILE, 2.9 * TILE, T().hudSpots.ailead, "#38b764"));
+      label(4.5 * TILE, 7 * TILE, "LLM GATEWAY", "#73eff7");
+      label(11.5 * TILE, 7 * TILE, "AI SDK", "#73eff7");
+
+      scene.zones = [
+        { id: "techlead", x: 5 * TILE, y: 25 * TILE, w: 5 * TILE, h: 5 * TILE },
+        { id: "staff", x: 5 * TILE, y: 14 * TILE, w: 5 * TILE, h: 5 * TILE },
+        { id: "ailead", x: 4 * TILE, y: 3 * TILE, w: 8 * TILE, h: 5 * TILE },
+      ];
+      scene.stairs = [
+        { x: 12, y: 23, w: 2, h: 2, tx: 12.5, ty: 18, dir: "up" },
+        { x: 12, y: 19, w: 2, h: 2, tx: 12.5, ty: 25.5, dir: "down" },
+        { x: 2, y: 12, w: 2, h: 2, tx: 2.5, ty: 7, dir: "up" },
+        { x: 2, y: 8, w: 2, h: 2, tx: 2.5, ty: 14.5, dir: "down" },
+      ];
+      scene.exitZone = { x: 6.4 * TILE, y: 31.6 * TILE, w: 3.2 * TILE, h: 2.4 * TILE };
+
+      scene.hero = addHero(scene, 7.5 * TILE, 30.5 * TILE);
+      scene.physics.add.collider(scene.hero, scene.solids);
+      scene.physics.world.setBounds(TILE, 2 * TILE, (CA_W - 2) * TILE, (CA_H - 3) * TILE);
+      scene.hero.setCollideWorldBounds(true);
+      scene.cameras.main.setBounds(0, 0, CA_W * TILE, CA_H * TILE);
+      scene.cameras.main.startFollow(scene.hero, true, 0.15, 0.15);
+      scene.cameras.main.setRoundPixels(true);
+
+      bindKeys(scene);
+      UI.setLocation(T().ui.castleName);
+      scene.activeThing = null;
+      UI.activeScene = scene;
+      scene.refreshTexts = function () {
+        UI.setLocation(T().ui.castleName);
+        scene.floorLabels[0].setText(T().hudSpots.techlead);
+        scene.floorLabels[1].setText(T().hudSpots.staff);
+        scene.floorLabels[2].setText(T().hudSpots.ailead);
+      };
+    },
+
+    update: function (time, dt) {
+      var scene = this;
+      updateHero(scene, scene.hero, dt);
+      var hx = scene.hero.x, hy = scene.hero.y;
+
+      var thing = null;
+      for (var i = 0; i < scene.zones.length; i++) {
+        var z = scene.zones[i];
+        if (hx >= z.x && hx <= z.x + z.w && hy >= z.y && hy <= z.y + z.h) { thing = { type: "spot", z: z }; break; }
+      }
+      if (!thing) for (i = 0; i < scene.stairs.length; i++) {
+        var s = scene.stairs[i];
+        if (hx >= s.x * TILE && hx <= (s.x + s.w) * TILE && hy >= s.y * TILE && hy <= (s.y + s.h) * TILE) {
+          thing = { type: "stairs", s: s }; break;
+        }
+      }
+      if (!thing) {
+        var e = scene.exitZone;
+        if (hx >= e.x && hx <= e.x + e.w && hy >= e.y && hy <= e.y + e.h) thing = { type: "exit" };
+      }
+
+      var key = thing ? (thing.type + (thing.z ? thing.z.id : thing.s ? thing.s.dir : "")) : null;
+      if (key !== scene.activeThing) {
+        scene.activeThing = key;
+        if (!thing) UI.hidePrompt();
+        else if (thing.type === "spot") UI.showPrompt(T().hudSpots[thing.z.id]);
+        else if (thing.type === "stairs") UI.showPrompt(thing.s.dir === "up" ? T().ui.stairsUp : T().ui.stairsDown);
+        else UI.showPrompt(T().ui.exitCastle);
+      }
+
+      if (thing && actionPressed(scene) && UI.canInteract()) {
+        if (thing.type === "spot") UI.openDialog(thing.z.id);
+        else if (thing.type === "stairs") {
+          CHIP.sfx.stairs();
+          scene.hero.setPosition(thing.s.tx * TILE, thing.s.ty * TILE);
+          scene.cameras.main.flash(120, 16, 18, 28);
+        } else {
+          CHIP.sfx.door();
+          scene.scene.start("Overworld", { fromCastle: true });
+        }
+      } else if (actionPressed(scene)) { /* absorve */ }
+    },
+  });
+
+  /* ---------------- UI (DOM) ---------------- */
+  var UI = {
+    dialogOpen: false,
+    lastClose: 0,
+    canInteract: function () { return !this.dialogOpen && Date.now() - this.lastClose > 300; },
+    els: {},
+    typeTimer: null,
+    mouthTimer: null,
+
+    init: function () {
+      var $ = function (id) { return document.getElementById(id); };
+      this.els = {
+        boot: $("boot"), bootTitle: $("boot-title"), bootSub: $("boot-sub"),
+        bootStart: $("boot-start"), bootHint: $("boot-hint"), bootLangs: $("boot-langs"),
+        bootCredit: $("boot-credit"),
+        prologue: $("prologue"), proTitle: $("pro-title"), proBody: $("pro-body"), proBtn: $("pro-btn"),
+        hud: $("hud"), loc: $("hud-loc"), xp: $("hud-xp"), xpLbl: $("hud-xp-label"),
+        btnLang: $("btn-lang"), btnMusic: $("btn-music"), btnCV: $("btn-cv"),
+        prompt: $("prompt"),
+        dialog: $("dialog"), dTitle: $("d-title"), dPeriod: $("d-period"), dBody: $("d-body"),
+        dChips: $("d-chips"), dLinks: $("d-links"), dNext: $("d-next"), dName: $("d-name"),
+        portrait: $("portrait"),
+        dpad: $("dpad"), btnA: $("btn-a"),
+        toast: $("toast"),
+        controlsHint: $("controls-hint"),
+      };
+      this.bind();
+      this.applyLang();
+      this.updateXP();
+      ART.drawPortraitTo(this.els.portrait, 0);
+      if (this.isTouch()) {
+        this.els.dpad.classList.remove("hidden");
+        this.els.btnA.classList.remove("hidden");
+      }
+    },
+
+    isTouch: function () { return "ontouchstart" in window || navigator.maxTouchPoints > 0; },
+
+    bind: function () {
+      var self = this;
+      // idioma na boot screen
+      this.els.bootLangs.querySelectorAll("button").forEach(function (b) {
+        b.addEventListener("click", function () {
+          State.lang = b.dataset.lang; State.save();
+          self.applyLang();
+        });
+      });
+      this.els.bootStart.addEventListener("click", function () { self.startGame(); });
+      this.els.proBtn.addEventListener("click", function () {
+        CHIP.sfx.confirm();
+        State.mark("prologue");
+        self.els.prologue.classList.add("hidden");
+        self.els.hud.classList.remove("hidden");
+        self.els.controlsHint.classList.remove("hidden");
+        setTimeout(function () { self.els.controlsHint.classList.add("fade"); }, 4000);
+      });
+      this.els.btnLang.addEventListener("click", function () {
+        State.lang = State.lang === "pt" ? "en" : "pt"; State.save();
+        self.applyLang();
+        CHIP.sfx.tick();
+      });
+      this.els.btnMusic.addEventListener("click", function () {
+        var on = CHIP.toggleMusic();
+        self.els.btnMusic.textContent = on ? "♪ ON" : "♪ OFF";
+      });
+      this.els.dNext.addEventListener("click", function () { self.advanceDialog(); });
+      this.els.dialog.addEventListener("click", function (e) {
+        if (e.target.closest("a") || e.target === self.els.dNext) return;
+        self.advanceDialog();
+      });
+      // d-pad
+      var map = { "dp-up": "up", "dp-down": "down", "dp-left": "left", "dp-right": "right" };
+      Object.keys(map).forEach(function (id) {
+        var el = document.getElementById(id);
+        var on = function (e) { e.preventDefault(); VKeys[map[id]] = true; };
+        var off = function (e) { e.preventDefault(); VKeys[map[id]] = false; };
+        el.addEventListener("touchstart", on, { passive: false });
+        el.addEventListener("touchend", off, { passive: false });
+        el.addEventListener("touchcancel", off, { passive: false });
+      });
+      this.els.btnA.addEventListener("touchstart", function (e) {
+        e.preventDefault();
+        if (self.dialogOpen) self.advanceDialog();
+        else VKeys.action = true;
+      }, { passive: false });
+      window.addEventListener("keydown", function (e) {
+        if (self.dialogOpen && (e.key === "Enter" || e.key === " " || e.key.toLowerCase() === "z")) {
+          e.preventDefault();
+          self.advanceDialog();
+        }
+      });
+    },
+
+    applyLang: function () {
+      var t = T();
+      this.els.bootSub.textContent = t.ui.subtitle;
+      this.els.bootStart.textContent = t.ui.pressStart;
+      this.els.bootHint.textContent = t.ui.bootHint;
+      this.els.bootCredit.textContent = t.ui.insertCoin;
+      this.els.bootLangs.querySelectorAll("button").forEach(function (b) {
+        b.classList.toggle("on", b.dataset.lang === State.lang);
+      });
+      this.els.proTitle.textContent = t.ui.prologueTitle;
+      this.els.proBody.textContent = t.ui.prologueBody;
+      this.els.proBtn.textContent = t.ui.prologueBtn;
+      this.els.btnCV.textContent = t.ui.resumeMode;
+      this.els.btnLang.textContent = State.lang.toUpperCase();
+      this.els.xpLbl.textContent = t.ui.questLog;
+      this.els.dName.textContent = t.speaker;
+      this.els.controlsHint.textContent = this.isTouch() ? t.ui.controlsMob : t.ui.controlsDesk;
+      document.documentElement.lang = State.lang === "pt" ? "pt-BR" : "en";
+      if (this.activeScene && this.activeScene.refreshTexts) this.activeScene.refreshTexts();
+    },
+
+    startGame: function () {
+      var self = this;
+      CHIP.start();
+      CHIP.sfx.confirm();
+      this.els.boot.classList.add("hidden");
+      this.els.prologue.classList.remove("hidden");
+      if (!window.__game) {
+        document.fonts.load('8px "Press Start 2P"').then(function () {
+          window.__game = new Phaser.Game({
+            type: Phaser.AUTO,
+            parent: "game",
+            width: 480, height: 320,
+            pixelArt: true,
+            backgroundColor: "#0b0c12",
+            physics: { default: "arcade", arcade: { debug: false } },
+            scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+            scene: [OverworldScene, CastleScene],
+          });
+        });
+      }
+    },
+
+    setLocation: function (name) { this.els.loc.textContent = name; },
+
+    showPrompt: function (name) {
+      this.els.prompt.innerHTML =
+        '<span class="key">' + T().ui.enterHint + "</span> " + (name || "");
+      this.els.prompt.classList.remove("hidden");
+    },
+    hidePrompt: function () { this.els.prompt.classList.add("hidden"); },
+
+    xpCount: function () {
+      return window.MILESTONES.filter(function (m) { return State.seen[m]; }).length;
+    },
+    updateXP: function () {
+      var el = this.els.xp;
+      if (!el) return;
+      el.innerHTML = "";
+      var n = this.xpCount();
+      window.MILESTONES.forEach(function (m, i) {
+        var s = document.createElement("span");
+        s.className = "xp-seg" + (i < n ? " full" : "");
+        el.appendChild(s);
+      });
+    },
+
+    /* ---- diálogo estilo janela de comunicação ---- */
+    openDialog: function (id, onClose) {
+      var t = T();
+      var spot = t.spots[id];
+      if (!spot) return;
+      var self = this;
+      this.dialogOpen = true;
+      this.onClose = onClose || null;
+      this.currentId = id;
+      CHIP.sfx.open();
+      this.els.dialog.classList.remove("hidden");
+      this.els.dTitle.textContent = spot.title;
+      this.els.dPeriod.textContent = spot.period;
+      this.els.dChips.innerHTML = "";
+      spot.chips.forEach(function (c) {
+        var s = document.createElement("span");
+        s.className = "chip"; s.textContent = c;
+        self.els.dChips.appendChild(s);
+      });
+      this.els.dLinks.classList.add("hidden");
+      if (id === "contact") {
+        this.els.dLinks.classList.remove("hidden");
+        this.els.dLinks.innerHTML =
+          '<a href="mailto:' + t.links.email + '">✉ ' + t.links.email + "</a>" +
+          '<a href="https://' + t.links.github + '" target="_blank" rel="noopener">⌂ ' + t.links.github + "</a>" +
+          '<a href="https://' + t.links.linkedin + '" target="_blank" rel="noopener">in ' + t.links.linkedin + "</a>";
+      }
+      this.typewrite(spot.body, function () {
+        State.mark(id);
+      });
+    },
+
+    typewrite: function (text, done) {
+      var self = this;
+      var el = this.els.dBody;
+      el.textContent = "";
+      this.fullText = text;
+      this.typing = true;
+      var i = 0;
+      clearInterval(this.typeTimer);
+      clearInterval(this.mouthTimer);
+      var mouth = 0;
+      this.mouthTimer = setInterval(function () {
+        mouth = 1 - mouth;
+        ART.drawPortraitTo(self.els.portrait, mouth);
+      }, 130);
+      this.typeTimer = setInterval(function () {
+        i += 2;
+        el.textContent = text.slice(0, i);
+        if (i % 6 === 0) CHIP.sfx.tick();
+        el.scrollTop = el.scrollHeight;
+        if (i >= text.length) {
+          self.finishTyping();
+          if (done) done();
+        }
+      }, 18);
+    },
+    finishTyping: function () {
+      clearInterval(this.typeTimer);
+      clearInterval(this.mouthTimer);
+      this.typing = false;
+      this.els.dBody.textContent = this.fullText;
+      ART.drawPortraitTo(this.els.portrait, 0);
+    },
+    advanceDialog: function () {
+      if (!this.dialogOpen) return;
+      if (this.typing) {
+        this.finishTyping();
+        State.mark(this.currentId);
+        return;
+      }
+      this.closeDialog();
+    },
+    closeDialog: function () {
+      this.dialogOpen = false;
+      this.lastClose = Date.now();
+      this.els.dialog.classList.add("hidden");
+      CHIP.sfx.close();
+      var cb = this.onClose; this.onClose = null;
+      if (cb) cb();
+    },
+
+    showComplete: function () {
+      var t = T();
+      CHIP.sfx.fanfare();
+      var el = this.els.toast;
+      el.innerHTML = "<strong>★ " + t.ui.complete + "</strong><span>" + t.ui.completeBody + "</span>";
+      el.classList.remove("hidden");
+      setTimeout(function () { el.classList.add("show"); }, 30);
+      setTimeout(function () {
+        el.classList.remove("show");
+        setTimeout(function () { el.classList.add("hidden"); }, 500);
+      }, 9000);
+    },
+  };
+  window.UI = UI;
+
+  /* hook de teste/debug */
+  window.__test = { makeOverworld: makeOverworld, makeCastle: makeCastle, OW_SPOTS: OW_SPOTS };
+
+  /* ---------------- bootstrap ---------------- */
+  document.addEventListener("DOMContentLoaded", function () {
+    State.load();
+    UI.init();
+  });
+})();
+
+</script>
+
+<script>
+(function(){
+  "use strict";
+  var rs = document.getElementById('resume-screen');
+  function show(name){
+    if(name==='resume'){ rs.classList.remove('hidden'); window.scrollTo(0,0); }
+    else { rs.classList.add('hidden'); }
+  }
+  function route(){ show(location.hash === '#resume' ? 'resume' : 'game'); }
+  window.addEventListener('hashchange', route);
+  document.addEventListener('click', function(e){
+    var a = e.target.closest('[data-nav]');
+    if(a){ location.hash = a.getAttribute('data-nav')==='resume' ? '#resume' : '#game'; }
+  });
+  // expõe helper p/ o resume interno reusar persistência de idioma
+  window.__resumeInit = function(){
+(function () {
+  "use strict";
+  var C = {
+    pt: {
+      back: "◀ VOLTAR AO JOGO", print: "BAIXAR PDF",
+      headline: "Staff Software Engineer · AI Platform Engineer · AI Lead",
+      s_summary: "RESUMO", s_exp: "EXPERIÊNCIA", s_skills: "COMPETÊNCIAS", s_edu: "FORMAÇÃO",
+      summary1: "Staff Software Engineer com mais de 13 anos de experiência em sistemas distribuídos, liderança de times de engenharia e plataformas de backend em larga escala. Nos últimos anos, meu trabalho evoluiu para AI Infrastructure Engineering: lidero o design de plataformas internas de IA, abstrações de LLM e workflows inteligentes que automatizam operações financeiras.",
+      summary2: "Gosto de construir fundações de engenharia que permitem que dezenas de times avancem mais rápido — plataformas, não features isoladas.",
+      cs_period: "out 2021 — presente", cs_role: "Staff Software Engineer · AI Lead",
+      cs_intro: "Fintech B2B brasileira. Uma jornada em três capítulos, com escopo e impacto crescentes:",
+      cs_tl_t: "Tech Lead <span class='period'>2021 — 2023</span>",
+      cs_tl_b: "Liderança técnica das squads de produto, em sequência: múltiplos usuários, uso e compra com cartão e gestão de despesas — arquitetura, execução e evolução dos times em pleno crescimento da empresa.",
+      cs_st_t: "Staff Engineer <span class='period'>2023 — Q2 2025</span>",
+      cs_st_b: "Atuação cross nos temas de engenharia da companhia e referência técnica da tribo de gestão de despesas: revisões de arquitetura, RFCs técnicos, padrões de engenharia, mentoria de engenheiros seniores e planejamento arquitetural de longo prazo.",
+      cs_ai_t: "AI Lead <span class='period'>Q3 2025 — presente</span>",
+      cs_ai_b: "Referência técnica de IA na companhia, liderando o tema de IA em produto. Arquitetei e implementei a plataforma de IA do produto Conta Simples: LLM Gateway com roteamento de modelos e independência de provedores, gestão de prompts, padronização de SDK e agentes — sobre AWS Bedrock, Claude Agent SDK e Mastra, em arquitetura serverless (AWS Lambda).",
+      cs_ai_b2: "No plano estratégico, apoio a companhia na definição da stack de IA usada a nível operacional. A jornada começou no âmbito pessoal: no início de 2024 me aprofundei por conta própria em IA generativa e agentes (paper Generative Agents, Pocket Flow, LangChain, Google ADK, Ollama, GPT, CrewAI).",
+      ifood_b: "Um dos maiores marketplaces B2B do Brasil. Liderei a modernização da plataforma com arquitetura de microsserviços event-driven: refatoração do marketplace, engine de campanhas, serviço de pedidos com ciclo de vida por máquina de estados, engine de precificação de alta performance, mentoria técnica e definição de arquitetura. Stack: Kotlin, Java, Kubernetes, PostgreSQL, Kafka.",
+      meli_b: "Plataforma de notas fiscais eletrônicas do Mercado Livre Fulfillment: integrações com o governo (SEFAZ), processamento de alto throughput (100+ TPS), arquitetura event-driven, circuit breakers e estratégias de retry para alta disponibilidade.",
+      walmart_b: "Engenheiro backend responsável por novas aplicações e evolução de sistemas operacionais: serviços de backend, suporte à produção, automação de infraestrutura e excelência operacional.",
+      early_t: "Experiências anteriores",
+      early_b: "Cota Melhor, Embracon, IT4Cloud, Reserva Fácil, Autofax, Citel Group e Treelog (Grupo Abril) — base sólida em backend, DevOps, mobile e software corporativo.",
+      g_ai: "Inteligência Artificial", g_arch: "Arquitetura", g_backend: "Backend",
+      g_cloud: "Cloud & Containers", g_data: "Dados", g_obs: "Observabilidade",
+      edu_b: "Bacharelado em Engenharia da Computação — UNIFIEO, 2012.",
+      foot: "© 2026 Jucelino Barros · este currículo também é um jogo 16-bit — aperte VOLTAR AO JOGO.",
+    },
+    en: {
+      back: "◀ BACK TO GAME", print: "DOWNLOAD PDF",
+      headline: "Staff Software Engineer · AI Platform Engineer · AI Lead",
+      s_summary: "SUMMARY", s_exp: "EXPERIENCE", s_skills: "SKILLS", s_edu: "EDUCATION",
+      summary1: "Staff Software Engineer with 13+ years of experience designing distributed systems, leading engineering teams and building large-scale backend platforms. In recent years my work has shifted toward AI Infrastructure Engineering: I lead the design of internal AI platforms, LLM abstractions and intelligent workflows used to automate financial operations.",
+      summary2: "I enjoy building engineering foundations that allow dozens of teams to move faster — platforms, not isolated features.",
+      cs_period: "Oct 2021 — present", cs_role: "Staff Software Engineer · AI Lead",
+      cs_intro: "Brazilian B2B fintech. A journey in three chapters, with growing scope and impact:",
+      cs_tl_t: "Tech Lead <span class='period'>2021 — 2023</span>",
+      cs_tl_b: "Technical leadership of product squads, in sequence: multi-user accounts, card usage & purchases, and expense management — architecture, delivery and team growth inside a fast-growing company.",
+      cs_st_t: "Staff Engineer <span class='period'>2023 — Q2 2025</span>",
+      cs_st_b: "Cross-cutting work across the company's engineering topics and technical reference of the expense management tribe: architecture reviews, technical RFCs, engineering standards, mentoring senior engineers and long-term architectural planning.",
+      cs_ai_t: "AI Lead <span class='period'>Q3 2025 — present</span>",
+      cs_ai_b: "Technical reference for AI at the company, leading AI in product. I architected and implemented the AI platform for the Conta Simples product: an LLM Gateway with model routing and provider independence, prompt management, SDK standardization and agents — built on AWS Bedrock, the Claude Agent SDK and Mastra, on a serverless architecture (AWS Lambda).",
+      cs_ai_b2: "On the strategic front, I support the company in defining the AI stack used at the operational level. The journey started personally: in early 2024 I dove into generative AI and agents on my own (Generative Agents paper, Pocket Flow, LangChain, Google ADK, Ollama, GPT, CrewAI).",
+      ifood_b: "One of Brazil's largest B2B marketplaces. I led the platform's modernization through an event-driven microservices architecture: marketplace refactoring, campaign engine, order service with a state-machine driven lifecycle, high-performance pricing engine, technical mentoring and architecture definition. Stack: Kotlin, Java, Kubernetes, PostgreSQL, Kafka.",
+      meli_b: "Electronic invoice platform used by Mercado Livre Fulfillment: government integrations (SEFAZ), high-throughput processing (100+ TPS), event-driven architecture, circuit breakers and retry strategies for high availability.",
+      walmart_b: "Backend engineer responsible for developing new applications and improving operational systems: backend services, production support, infrastructure automation and operational excellence.",
+      early_t: "Earlier experience",
+      early_b: "Cota Melhor, Embracon, IT4Cloud, Reserva Fácil, Autofax, Citel Group and Treelog (Grupo Abril) — a strong foundation in backend, DevOps, mobile and enterprise software.",
+      g_ai: "Artificial Intelligence", g_arch: "Architecture", g_backend: "Backend",
+      g_cloud: "Cloud & Containers", g_data: "Databases", g_obs: "Observability",
+      edu_b: "Bachelor's Degree in Computer Engineering — UNIFIEO, 2012.",
+      foot: "© 2026 Jucelino Barros · this résumé is also a 16-bit game — press BACK TO GAME.",
+    },
+  };
+
+  var lang = "pt";
+  try {
+    var raw = localStorage.getItem("jlx-state");
+    if (raw) lang = JSON.parse(raw).lang || lang;
+    else lang = (navigator.language || "en").toLowerCase().indexOf("pt") === 0 ? "pt" : "en";
+  } catch (e) {}
+
+  function apply() {
+    var t = C[lang];
+    document.querySelectorAll("[data-i18n]").forEach(function (el) {
+      var k = el.getAttribute("data-i18n");
+      if (t[k] !== undefined) el.innerHTML = t[k];
+    });
+    document.getElementById("lang-pt").classList.toggle("on", lang === "pt");
+    document.getElementById("lang-en").classList.toggle("on", lang === "en");
+    document.documentElement.lang = lang === "pt" ? "pt-BR" : "en";
+    try {
+      var raw = localStorage.getItem("jlx-state");
+      var s = raw ? JSON.parse(raw) : {};
+      s.lang = lang;
+      localStorage.setItem("jlx-state", JSON.stringify(s));
+    } catch (e) {}
+  }
+  document.getElementById("lang-pt").addEventListener("click", function () { lang = "pt"; apply(); });
+  document.getElementById("lang-en").addEventListener("click", function () { lang = "en"; apply(); });
+  document.getElementById("print").addEventListener("click", function () { window.print(); });
+  apply();
+})();
+ }
+  route();
+})();
+</script>
+<script>
+/* ===== resume screen init ===== */
+try{window.__resumeInit();}catch(e){console.error(e);}
+</script>
 </body>
 </html>
